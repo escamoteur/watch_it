@@ -1,5 +1,7 @@
 **This describes the old get_it_mixin API. It's here as a reference and for all new to this API**
 
+please see https://github.com/escamoteur/watch_it/issues/1
+
 # get_it_mixin
 
 A set of mixins that allow widgets to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
