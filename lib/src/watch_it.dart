@@ -33,7 +33,60 @@ Future<T> getAsync<T extends Object>(
 /// triggers a rebuild every time [T].value changes
 /// If [target] is not null whatch will observe this Object instead of
 /// looking inside GetIt
-R watch<T extends ValueListenable<R>, R>({T? target, String? instanceName}) {
+R watch<T extends Object, R>(
+    {T? target, dynamic Function(T)? select, String? instanceName}) {
+  assert(_activeWatchItState != null,
+      'watch can only be called inside a build function');
+  late final Object observedObject;
+  late final observedProperty;
+  if (select != null) {
+    final parentObject = target ?? di<T>(instanceName: instanceName);
+    final property = select(parentObject);
+    if (property is Listenable) {
+      observedObject = property;
+    } else if (parentObject is Listenable) {
+      observedObject = parentObject;
+      observedProperty = property;
+    } else {
+      throw ArgumentError(
+          'The select function has to return a ValueListenable or the parent object has to be a Listenable');
+    }
+  } else {
+    if (Object is T && Listenable is R) {
+      Type type = R
+      observedObject = di<R>(instanceName: instanceName);
+    } else {
+      observedObject = target ?? di<T>(instanceName: instanceName);
+    }
+    observedObject = target ?? di<T>(instanceName: instanceName);
+  }
+
+  if (observedObject is ValueListenable<R>) {
+    _activeWatchItState!
+        .watchListenable(target: observedObject, instanceName: instanceName);
+    return observedObject.value;
+  }
+
+  if (select != null) {
+    // return _activeWatchItState!
+    //     .watchOnly<T, R>(select, instanceName: instanceName);
+  } else {
+    if (observedObject is Listenable) {
+      _activeWatchItState!
+          .watchListenable(target: observedObject, instanceName: instanceName);
+      return observedProperty as R;
+    }
+    throw ArgumentError(
+        'The select function has to return a ValueListenable or the parent object has to be a Listenable');
+  }
+}
+
+/// To observe `ValueListenables`
+/// like [get] but it also registers a listener to [T] and
+/// triggers a rebuild every time [T].value changes
+/// If [target] is not null whatch will observe this Object instead of
+/// looking inside GetIt
+R watchold<T extends ValueListenable<R>, R>({T? target, String? instanceName}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
   return _activeWatchItState!

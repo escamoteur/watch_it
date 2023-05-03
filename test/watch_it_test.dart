@@ -81,13 +81,13 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     String country;
     String country2;
     if (watchOnlyNoOnly) {
-      final model = watchOnly<Model, Model>(null);
+      final model = watch<Model, Model>();
       country = model.country!;
       country2 = model.country2!;
     }
-    country = watchOnly((Model x) => x.country)!;
-    country2 = watchOnly((Model x) => x.country2)!;
-    final name = watchX((Model x) => x.name!);
+    country = watch(select: (Model x) => x.country)!;
+    country2 = watch(select: (Model x) => x.country2)!;
+    final name = watch(select: (Model x) => x.name!);
     final nestedCountry =
         watchXOnly((Model x) => x.nestedModel!, (Model? n) => n?.country);
 

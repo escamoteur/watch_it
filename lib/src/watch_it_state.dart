@@ -76,7 +76,7 @@ class _WatchItState {
 
   /// if _getWatch returns null it means this is either the very first or the las watch
   /// in this list.
-  _WatchEntry? _getWatch<T>() {
+  _WatchEntry? _getWatch() {
     if (currentWatchIndex != null) {
       assert(_watchList.length > currentWatchIndex!);
       final result = _watchList[currentWatchIndex!];
@@ -104,21 +104,19 @@ class _WatchItState {
     currentWatchIndex = null;
   }
 
-  T watch<T extends ValueListenable>({T? target, String? instanceName}) {
-    final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
-    var watch = _getWatch<T>() as _WatchEntry<T, T>?;
+  void watchListenableold<T extends Listenable>(
+      {required T target, String? instanceName}) {
+    var watch = _getWatch() as _WatchEntry<T, T>?;
 
     if (watch != null) {
-      if (listenable == watch.observedObject) {
-        return listenable;
-      } else {
-        /// select returned a different value than the last time
+      if (target != watch.observedObject) {
+        /// target changed from the the last time
         /// so we have to unregister out handler and subscribe anew
         watch.dispose();
       }
     } else {
       watch = _WatchEntry<T, T>(
-        observedObject: listenable,
+        observedObject: target,
         dispose: (x) => x.observedObject.removeListener(
           x.notificationHandler!,
         ),
@@ -131,36 +129,32 @@ class _WatchItState {
       _element!.markNeedsBuild();
     };
     watch.notificationHandler = handler;
-    watch.observedObject = listenable;
+    watch.observedObject = target;
 
-    listenable.addListener(handler);
-    return listenable;
+    target.addListener(handler);
   }
 
   /// [handler] and [executeImmediately] are used by [registerHandler]
-  R watchX<T extends Object, R>(
-    ValueListenable<R> Function(T) select, {
+  void watchListenable<T extends Listenable, R>({
+    required T target,
     void Function(BuildContext contex, R newValue, void Function() dispose)?
         handler,
     bool executeImmediately = false,
     String? instanceName,
   }) {
-    final parentObject = GetIt.I<T>(instanceName: instanceName);
-    final listenable = select(parentObject);
-
-    var watch = _getWatch() as _WatchEntry<ValueListenable<R>, R?>?;
+    var watch = _getWatch() as _WatchEntry<T, T>?;
 
     if (watch != null) {
-      if (listenable == watch.observedObject) {
-        return listenable.value;
+      if (target == watch.observedObject) {
+        return;
       } else {
         /// select returned a different value than the last time
         /// so we have to unregister out handler and subscribe anew
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<ValueListenable<R>, R?>(
-        observedObject: listenable,
+      watch = _WatchEntry<T, T>(
+        observedObject: target,
         dispose: (x) => x.observedObject.removeListener(
           x.notificationHandler!,
         ),
@@ -169,21 +163,21 @@ class _WatchItState {
       _appendWatch(watch);
     }
 
+    // ignore: prefer_function_declarations_over_variables
     final internalHandler = () {
-      if (handler != null) {
-        handler(_element!, listenable.value, watch!.dispose);
+      if (handler != null && target is ValueListenable) {
+        handler(_element!, target.value, watch!.dispose);
       } else {
         _element!.markNeedsBuild();
       }
     };
     watch.notificationHandler = internalHandler;
-    watch.observedObject = listenable;
+    watch.observedObject = target;
 
-    listenable.addListener(internalHandler);
-    if (executeImmediately) {
-      handler!(_element!, listenable.value, watch.dispose);
+    target.addListener(internalHandler);
+    if (target is ValueListenable && executeImmediately) {
+      handler!(_element!, target.value, watch.dispose);
     }
-    return listenable.value;
   }
 
   R watchOnly<T extends Listenable, R>({
@@ -220,7 +214,7 @@ class _WatchItState {
       // one selector function from another.
     }
 
-    final handler = () {
+    handler() {
       if (only == null) {
         _element!.markNeedsBuild();
         watch!.lastValue = listenable as R;
@@ -231,7 +225,8 @@ class _WatchItState {
         _element!.markNeedsBuild();
         watch.lastValue = newValue;
       }
-    };
+    }
+
     watch.notificationHandler = handler;
 
     listenable.addListener(handler);
