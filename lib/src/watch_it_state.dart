@@ -7,7 +7,7 @@ class _WatchEntry<TObservedObject, TValue> {
   final void Function(_WatchEntry entry) _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
-  TValue? Function(TObservedObject)? selector;
+  TValue? Function(Listenable)? selector;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
@@ -177,9 +177,9 @@ class _WatchItState {
     }
   }
 
-  watchOnly<T extends Listenable,R>({
+  watchOnly<T extends Listenable, R>({
     required T listenable,
-    required R Function(T) only,
+    required R Function(Listenable) only,
   }) {
     // final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
 
@@ -192,7 +192,7 @@ class _WatchItState {
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<T,R>(
+      watch = _WatchEntry<Listenable, R>(
           observedObject: listenable,
           selector: only,
           lastValue: only(listenable),

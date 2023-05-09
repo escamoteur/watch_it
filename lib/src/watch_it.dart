@@ -28,13 +28,41 @@ Future<T> getAsync<T extends Object>(
     GetIt.I.getAsync<T>(
         instanceName: instanceName, param1: param1, param2: param2);
 
-T watch<T extends Listenable>({T? target, String? instanceName}) {
+T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
 
-  final observedObject = target ?? di<T>(instanceName: instanceName);
+  _activeWatchItState!.watchListenable(target: target);
+  return target;
+}
+
+R watchIt<T extends Object, R extends Listenable>(
+    {R Function(T)? selectProperty, String? instanceName}) {
+  assert(_activeWatchItState != null,
+      'watch can only be called inside a build function');
+  R observedObject;
+  if (selectProperty != null) {
+    observedObject = selectProperty(di<T>(instanceName: instanceName));
+  } else {
+    if (T is Listenable) {
+      observedObject = di<T>(instanceName: instanceName) as R;
+    } else {
+      throw ArgumentError(
+          'Type T has to be a Listenable or the select function has to return a Listenable');
+    }
+  }
   _activeWatchItState!.watchListenable(target: observedObject);
   return observedObject;
+}
+
+R watchItX<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
+    {String? instanceName}) {
+  assert(_activeWatchItState != null,
+      'watch can only be called inside a build function');
+  ValueListenable<R> observedObject;
+  observedObject = selectProperty(di<T>(instanceName: instanceName));
+  _activeWatchItState!.watchListenable(target: observedObject);
+  return observedObject.value;
 }
 
 /// To observe `ValueListenables`
@@ -42,33 +70,24 @@ T watch<T extends Listenable>({T? target, String? instanceName}) {
 /// triggers a rebuild every time [T].value changes
 /// If [target] is not null whatch will observe this Object instead of
 /// looking inside GetIt
-R watchProperty<T extends Object, R>(
-    {T? target, required Object Function(T) select, String? instanceName}) {
+R watchProperty<T extends Listenable, R>(R Function(Listenable) selectProperty,
+    {T? target, String? instanceName}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function');
-  late final Listenable observedObject;
-  late final R observedProperty;
+      'watchIt can only be called inside a build function');
+  throwIfNot(
+      T is Listenable,
+      ArgumentError(
+          'The select function has to return a ValueListenable or the parent object has to be a Listenable'));
+  late final T observedObject;
 
   final parentObject = target ?? di<T>(instanceName: instanceName);
-  final property = select(parentObject);
-  if (property is Listenable) {
-    observedObject = property;
-    _activeWatchItState!.watchListenable(target: observedObject);
-    if (observedObject is ValueListenable<R>) {
-      return observedObject.value;
-    }
-    return observedObject as R;
-  } else if (parentObject is Listenable) {
-    observedObject = parentObject;
-    assert(property is R,
-        'The select either has to return a ValueListenable<R> or R and the parent object has to be a Listenable');
-    observedProperty = property as R;
-    _activeWatchItState!.watchOnly<Listenable,T>(listenable: observedObject, only: () => (select as Listenable));
-    return observedProperty;
-  } else {
-    throw ArgumentError(
-        'The select function has to return a ValueListenable or the parent object has to be a Listenable');
-  }
+  final R observedProperty = selectProperty(parentObject);
+  assert(observedProperty! is Listenable,
+      'selectProperty returns a Listenable. Use watchIt instead');
+  observedObject = parentObject;
+  _activeWatchItState!
+      .watchOnly<T, R>(listenable: observedObject, only: selectProperty);
+  return observedProperty;
 }
 
 /// subscribes to the `Stream` returned by [select] and returns
