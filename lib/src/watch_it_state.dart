@@ -4,19 +4,18 @@ class _WatchEntry<TObservedObject, TValue> {
   TObservedObject observedObject;
   VoidCallback? notificationHandler;
   StreamSubscription? subscription;
-  TValue Function(TObservedObject)? selector;
-  final void Function(_WatchEntry<TObservedObject, TValue> entry) _dispose;
+  final void Function(_WatchEntry entry) _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
+  TValue? Function(TObservedObject)? selector;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
       {this.notificationHandler,
       this.subscription,
-      required void Function(_WatchEntry<TObservedObject, TValue> entry)
-          dispose,
-      this.lastValue,
       this.selector,
+      required void Function(_WatchEntry entry) dispose,
+      this.lastValue,
       this.isHandlerWatch = false,
       required this.observedObject})
       : _dispose = dispose;
@@ -24,20 +23,11 @@ class _WatchEntry<TObservedObject, TValue> {
     _dispose(this);
   }
 
-  TValue getSelectedValue() {
-    assert(selector != null);
-    return selector!(observedObject);
-  }
-
-  bool get hasSelector => selector != null;
-
   bool watchesTheSameAndNotHandler(_WatchEntry entry) {
     if (isHandlerWatch) return false;
     if (entry.observedObject != null) {
-      if (entry.observedObject == observedObject) {
-        if (entry.hasSelector && hasSelector) {
-          return identical(entry.getSelectedValue(), getSelectedValue());
-        }
+      if (entry.observedObject == observedObject &&
+          observedObject is ValueListenable) {
         return true;
       }
       return false;
@@ -49,7 +39,7 @@ class _WatchEntry<TObservedObject, TValue> {
 class _WatchItState {
   Element? _element;
 
-  final _watchList = <_WatchEntry<Object, Object?>>[];
+  final _watchList = <_WatchEntry>[];
   int? currentWatchIndex;
 
   static CustomValueNotifier<bool?>? onScopeChanged;
@@ -91,7 +81,7 @@ class _WatchItState {
 
   /// We don't allow multiple watches on the same object but we allow multiple handler
   /// that can be registered to the same observable object
-  void _appendWatch<T extends Object, V>(_WatchEntry<T, V> entry,
+  void _appendWatch<V>(_WatchEntry entry,
       {bool allowMultipleSubcribers = false}) {
     if (!entry.isHandlerWatch && !allowMultipleSubcribers) {
       for (final watch in _watchList) {
@@ -106,7 +96,7 @@ class _WatchItState {
 
   void watchListenableold<T extends Listenable>(
       {required T target, String? instanceName}) {
-    var watch = _getWatch() as _WatchEntry<T, T>?;
+    var watch = _getWatch();
 
     if (watch != null) {
       if (target != watch.observedObject) {
@@ -115,9 +105,9 @@ class _WatchItState {
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<T, T>(
+      watch = _WatchEntry(
         observedObject: target,
-        dispose: (x) => x.observedObject.removeListener(
+        dispose: (x) => x.observedObject!.removeListener(
           x.notificationHandler!,
         ),
       );
@@ -135,14 +125,13 @@ class _WatchItState {
   }
 
   /// [handler] and [executeImmediately] are used by [registerHandler]
-  void watchListenable<T extends Listenable, R>({
-    required T target,
+  void watchListenable<R>({
+    required Listenable target,
     void Function(BuildContext contex, R newValue, void Function() dispose)?
         handler,
     bool executeImmediately = false,
-    String? instanceName,
   }) {
-    var watch = _getWatch() as _WatchEntry<T, T>?;
+    var watch = _getWatch() as _WatchEntry<Listenable, R>?;
 
     if (watch != null) {
       if (target == watch.observedObject) {
@@ -153,9 +142,9 @@ class _WatchItState {
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<T, T>(
+      watch = _WatchEntry(
         observedObject: target,
-        dispose: (x) => x.observedObject.removeListener(
+        dispose: (x) => x.observedObject!.removeListener(
           x.notificationHandler!,
         ),
         isHandlerWatch: handler != null,
@@ -165,8 +154,12 @@ class _WatchItState {
 
     // ignore: prefer_function_declarations_over_variables
     final internalHandler = () {
-      if (handler != null && target is ValueListenable) {
-        handler(_element!, target.value, watch!.dispose);
+      if (handler != null) {
+        if (target is ValueListenable) {
+          handler(_element!, target.value, watch!.dispose);
+        } else {
+          handler(_element!, target as R, watch!.dispose);
+        }
       } else {
         _element!.markNeedsBuild();
       }
@@ -175,51 +168,42 @@ class _WatchItState {
     watch.observedObject = target;
 
     target.addListener(internalHandler);
-    if (target is ValueListenable && executeImmediately) {
-      handler!(_element!, target.value, watch.dispose);
+    if (handler != null && executeImmediately) {
+      if (target is ValueListenable) {
+        handler(_element!, target.value, watch.dispose);
+      } else {
+        handler(_element!, target as R, watch.dispose);
+      }
     }
   }
 
-  R watchOnly<T extends Listenable, R>({
-    R Function(T)? only,
-    String? instanceName,
-    T? target,
+  watchOnly<T extends Listenable,R>({
+    required T listenable,
+    required R Function(T) only,
   }) {
     // final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
-    final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
 
-    var watch = _getWatch() as _WatchEntry<T, R>?;
+    var watch = _getWatch() as _WatchEntry<Listenable, R>?;
 
     if (watch != null) {
-      if (listenable == watch.observedObject) {
-        if (only != null) {
-          return only(listenable);
-        }
-        return listenable as R;
-      } else {
+      if (listenable != watch.observedObject) {
         /// the targetobject has changed probably by passing another instance
         /// so we have to unregister our handler and subscribe anew
         watch.dispose();
       }
     } else {
-      final onlyTarget = only != null ? only(listenable) : listenable as R;
-      watch = _WatchEntry<T, R>(
+      watch = _WatchEntry<T,R>(
           observedObject: listenable,
           selector: only,
-          lastValue: onlyTarget,
+          lastValue: only(listenable),
           dispose: (x) =>
-              x.observedObject.removeListener(x.notificationHandler!));
+              x.observedObject!.removeListener(x.notificationHandler!));
       _appendWatch(watch, allowMultipleSubcribers: true);
       // we have to set `allowMultipleSubcribers=true` because we can't differentiate
       // one selector function from another.
     }
 
     handler() {
-      if (only == null) {
-        _element!.markNeedsBuild();
-        watch!.lastValue = listenable as R;
-        return;
-      }
       final newValue = only(listenable);
       if (watch!.lastValue != newValue) {
         _element!.markNeedsBuild();
@@ -230,65 +214,18 @@ class _WatchItState {
     watch.notificationHandler = handler;
 
     listenable.addListener(handler);
-    return only != null ? only(listenable) : listenable as R;
   }
 
-  R watchXOnly<T extends Object, Q extends Listenable, R>(
-    Q Function(T) select,
-    R Function(Q) only, {
-    String? instanceName,
-  }) {
-    final T parentObject = GetIt.I.call<T>(instanceName: instanceName);
-    final Q listenable = select(parentObject);
-
-    var watch = _getWatch() as _WatchEntry<Q, R>?;
-
-    if (watch != null) {
-      if (listenable == watch.observedObject) {
-        return only(listenable);
-      } else {
-        /// select returned a different value than the last time
-        /// so we have to unregister out handler and subscribe anew
-        watch.dispose();
-      }
-    } else {
-      watch = _WatchEntry<Q, R>(
-          observedObject: listenable,
-          lastValue: only(listenable),
-          selector: only,
-          dispose: (x) =>
-              x.observedObject.removeListener(x.notificationHandler!));
-      _appendWatch(watch, allowMultipleSubcribers: true);
-      // we have to set `allowMultipleSubcribers=true` because we can't differentiate
-      // one selector function from another.
-    }
-
-    final handler = () {
-      final newValue = only(listenable);
-      if (watch!.lastValue != newValue) {
-        _element!.markNeedsBuild();
-        watch.lastValue = newValue;
-      }
-    };
-
-    watch.observedObject = listenable;
-    watch.notificationHandler = handler;
-
-    listenable.addListener(handler);
-    return only(listenable);
-  }
-
-  AsyncSnapshot<R> watchStream<T extends Object, R>(
-    Stream<R> Function(T) select,
-    R? initialValue, {
+  AsyncSnapshot<R> watchStream<T extends Stream<R>, R>({
+    required T target,
+    required R? initialValue,
     String? instanceName,
     bool preserveState = true,
     void Function(BuildContext context, AsyncSnapshot<R> snapshot,
             void Function() cancel)?
         handler,
   }) {
-    final T parentObject = GetIt.I<T>(instanceName: instanceName);
-    final stream = select(parentObject);
+    final stream = target;
 
     var watch = _getWatch() as _WatchEntry<Stream<R>, AsyncSnapshot<R?>>?;
 
@@ -369,20 +306,21 @@ class _WatchItState {
   }
 
   void registerHandler<T extends Object, R>(
-    ValueListenable<R> Function(T) select,
+    Listenable target,
     void Function(BuildContext contex, R newValue, void Function() dispose)
         handler, {
     bool executeImmediately = false,
     String? instanceName,
   }) {
-    watchX<T, R>(select,
-        handler: handler,
-        executeImmediately: executeImmediately,
-        instanceName: instanceName);
+    watchListenable<R>(
+      target: target,
+      handler: handler,
+      executeImmediately: executeImmediately,
+    );
   }
 
-  void registerStreamHandler<T extends Object, R>(
-    Stream<R> Function(T) select,
+  void registerStreamHandler<T extends Stream<R>, R>(
+    T target,
     void Function(
       BuildContext context,
       AsyncSnapshot<R> snapshot,
@@ -392,8 +330,11 @@ class _WatchItState {
     R? initialValue,
     String? instanceName,
   }) {
-    watchStream<T, R>(select, initialValue,
-        instanceName: instanceName, handler: handler);
+    watchStream<T, R>(
+        target: target,
+        initialValue: initialValue,
+        instanceName: instanceName,
+        handler: handler);
   }
 
   /// this function is used to implement several others
@@ -409,8 +350,8 @@ class _WatchItState {
   /// [futureProvider] overrides a looked up future. Used to implement [allReady]
   /// We use provider functions here so that [registerFutureHandler] ensure
   /// that they are only called once.
-  AsyncSnapshot<R?> registerFutureHandler<T extends Object, R>(
-    Future<R> Function(T)? select, {
+  AsyncSnapshot<R?> registerFutureHandler<T extends Object, R>({
+    T? target,
     void Function(BuildContext context, AsyncSnapshot<R?> snapshot,
             void Function() cancel)?
         handler,
@@ -422,22 +363,20 @@ class _WatchItState {
     String? instanceName,
   }) {
     assert(
-        select != null || futureProvider != null,
-        "select can't be null if you use ${handler != null ? 'registerFutureHandler' : 'watchFuture'} "
+        futureProvider != null || target != null,
+        "target can't be null if you use ${handler != null ? 'registerFutureHandler' : 'watchFuture'} "
         'if you want target directly pass (x)=>x');
-
     var watch = _getWatch() as _WatchEntry<Future<R>, AsyncSnapshot<R?>>?;
 
-    Future<R>? _future;
-    if (futureProvider == null) {
+    Future<R>? future;
+    if (futureProvider == null && target is Future<R>) {
       /// so we use [select] to get our Future
-      final T parentObject = GetIt.I<T>(instanceName: instanceName);
-      _future = select!.call(parentObject);
+      future = target;
     }
 
-    R? _initialValue;
+    R? initialValue;
     if (watch != null) {
-      if (_future == watch.observedObject || futureProvider != null) {
+      if (future == watch.observedObject || futureProvider != null) {
         ///  still the same Future so we can directly return lastvalue
         /// in case that we got a futureProvider we always keep the first
         /// returned Future
@@ -451,16 +390,16 @@ class _WatchItState {
         /// select returned a different value than the last time
         /// so we have to unregister out handler and subscribe anew
         watch.dispose();
-        _initialValue = preserveState && watch.lastValue!.hasData
+        initialValue = preserveState && watch.lastValue!.hasData
             ? watch.lastValue!.data ?? initialValueProvider?.call()
             : initialValueProvider?.call as R?;
       }
     } else {
       /// In case futureProvider != null
-      _future ??= futureProvider!();
+      future ??= futureProvider!();
 
       watch = _WatchEntry<Future<R>, AsyncSnapshot<R?>>(
-          observedObject: _future,
+          observedObject: future,
           isHandlerWatch: handler != null,
           dispose: (x) => x.activeCallbackIdentity = null);
       _appendWatch(watch, allowMultipleSubcribers: allowMultipleSubscribers);
@@ -469,13 +408,13 @@ class _WatchItState {
     handler ??= (context, x, cancel) => (context as Element).markNeedsBuild();
 
     /// in case of a new watch or an changing Future we do the following:
-    watch.observedObject = _future!;
+    watch.observedObject = future!;
 
     /// by using a local variable we ensure that only the value and not the
     /// variable is captured.
     final callbackIdentity = Object();
     watch.activeCallbackIdentity = callbackIdentity;
-    _future.then(
+    future.then(
       (x) {
         if (watch!.activeCallbackIdentity == callbackIdentity) {
           // print('Future completed $x');
@@ -495,7 +434,7 @@ class _WatchItState {
     );
 
     watch.lastValue = AsyncSnapshot<R?>.withData(
-        ConnectionState.waiting, _initialValue ?? initialValueProvider?.call());
+        ConnectionState.waiting, initialValue ?? initialValueProvider?.call());
     if (executeImmediately) {
       handler(_element!, watch.lastValue!, watch.dispose);
     }
@@ -509,7 +448,6 @@ class _WatchItState {
       Duration? timeout,
       bool shouldRebuild = true}) {
     return registerFutureHandler<Object, bool>(
-      null,
       handler: (context, x, dispose) {
         if (x.hasError) {
           onError?.call(context, x.error);
@@ -536,7 +474,7 @@ class _WatchItState {
       void Function(BuildContext context, Object? error)? onError,
       Duration? timeout,
       String? instanceName}) {
-    return registerFutureHandler<Object, bool>(null,
+    return registerFutureHandler<Object, bool>(
         handler: (context, x, cancel) {
           if (x.hasError) {
             onError?.call(context, x.error);
@@ -567,8 +505,8 @@ class _WatchItState {
   }
 
   bool? rebuildOnScopeChanges() {
-    final result =
-        watch<CustomValueNotifier<bool?>>(target: onScopeChanged).value;
+    final result = onScopeChanged!.value;
+    watchListenable(target: onScopeChanged!);
     onScopeChanged!.value = null;
     return result;
   }

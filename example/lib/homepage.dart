@@ -15,22 +15,22 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     registerHandler(
-        (WeatherManager x) => x.updateWeatherCommand.thrownExceptions,
-        (context, error, cancel) {
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text('An error has occurred!'),
-                content: Text(error.toString()),
-              ));
-    });
+        select: (WeatherManager x) => x.updateWeatherCommand.thrownExceptions,
+        handler: (context, error, cancel) {
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: const Text('An error has occurred!'),
+                    content: Text(error.toString()),
+                  ));
+        });
 
-    final isRunning =
-        watchX((WeatherManager x) => x.updateWeatherCommand.isExecuting);
-    final updateButtonEnbaled =
-        watchX((WeatherManager x) => x.updateWeatherCommand.canExecute);
+    final bool isRunning = watchProperty(
+        select: (WeatherManager x) => x.updateWeatherCommand.isExecuting);
+    final updateButtonEnbaled = watchProperty(
+        select: (WeatherManager x) => x.updateWeatherCommand.canExecute);
     final switchValue =
-        watchX((WeatherManager x) => x.setExecutionStateCommand);
+        watchProperty(select: (WeatherManager x) => x.setExecutionStateCommand);
 
     return Scaffold(
       appBar: AppBar(title: Text("WeatherDemo")),
