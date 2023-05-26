@@ -28,9 +28,9 @@ class _HomePageState extends State<HomePage> {
 
     final bool isRunning =
         watch(di<WeatherManager>().updateWeatherCommand.isExecuting).value;
-    final bool isRunning2 = watchIt(
+    final bool isRunning2 = watchIt(WeatherManager,
         selectProperty: (WeatherManager x) =>
-            x.updateWeatherCommand.isExecuting).value;
+            x.updateWeatherCommand.isExecuting).value as bool;
     final bool isRunning3 = watchIt<WeatherManager, ValueListenable<bool>>(
         selectProperty: (x) => x.updateWeatherCommand.isExecuting).value;
 

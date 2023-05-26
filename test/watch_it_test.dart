@@ -81,7 +81,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     String country;
     String country2;
     if (watchOnlyNoOnly) {
-      final model = watchIt<Model, Model>();
+      final Model model = watchIt();
       country = model.country!;
       country2 = model.country2!;
     }

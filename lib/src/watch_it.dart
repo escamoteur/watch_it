@@ -36,7 +36,7 @@ T watch<T extends Listenable>(T target) {
   return target;
 }
 
-R watchIt<T extends Object, R extends Listenable>(
+R watchIt<T extends Object, R extends Listenable>(Type type
     {R Function(T)? selectProperty, String? instanceName}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
@@ -55,14 +55,18 @@ R watchIt<T extends Object, R extends Listenable>(
   return observedObject;
 }
 
-R watchItX<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
+R watchItX<T extends Object, R>(Listenable Function(T) selectProperty,
     {String? instanceName}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
-  ValueListenable<R> observedObject;
+  Listenable observedObject;
   observedObject = selectProperty(di<T>(instanceName: instanceName));
   _activeWatchItState!.watchListenable(target: observedObject);
-  return observedObject.value;
+  if (observedObject is ValueListenable<R>) {
+    return observedObject.value;
+  } else {
+    return observedObject as R;
+  }
 }
 
 /// To observe `ValueListenables`
