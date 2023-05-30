@@ -7,16 +7,16 @@ class _WatchEntry<TObservedObject, TValue> {
   final void Function(_WatchEntry entry) _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
-  TValue? Function(Listenable)? selector;
+  bool isSelectorWatch;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
       {this.notificationHandler,
       this.subscription,
-      this.selector,
       required void Function(_WatchEntry entry) dispose,
       this.lastValue,
       this.isHandlerWatch = false,
+      this.isSelectorWatch = false,
       required this.observedObject})
       : _dispose = dispose;
   void dispose() {
@@ -24,10 +24,9 @@ class _WatchEntry<TObservedObject, TValue> {
   }
 
   bool watchesTheSameAndNotHandler(_WatchEntry entry) {
-    if (isHandlerWatch) return false;
+    if (isHandlerWatch || isSelectorWatch) return false;
     if (entry.observedObject != null) {
-      if (entry.observedObject == observedObject &&
-          observedObject is ValueListenable) {
+      if (entry.observedObject == observedObject) {
         return true;
       }
       return false;
@@ -177,13 +176,13 @@ class _WatchItState {
     }
   }
 
-  watchOnly<T extends Listenable, R>({
-    required T listenable,
-    required R Function(Listenable) only,
+  watchOnly<T, R>({
+    required Listenable listenable,
+    required R Function(T) only,
   }) {
     // final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
 
-    var watch = _getWatch() as _WatchEntry<Listenable, R>?;
+    var watch = _getWatch() as _WatchEntry<Listenable, dynamic>?;
 
     if (watch != null) {
       if (listenable != watch.observedObject) {
@@ -192,10 +191,10 @@ class _WatchItState {
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<Listenable, R>(
+      watch = _WatchEntry<Listenable, dynamic>(
           observedObject: listenable,
-          selector: only,
-          lastValue: only(listenable),
+          lastValue: only(listenable as T),
+          isSelectorWatch: true,
           dispose: (x) =>
               x.observedObject!.removeListener(x.notificationHandler!));
       _appendWatch(watch, allowMultipleSubcribers: true);
@@ -204,7 +203,7 @@ class _WatchItState {
     }
 
     handler() {
-      final newValue = only(listenable);
+      final newValue = only(listenable as T);
       if (watch!.lastValue != newValue) {
         _element!.markNeedsBuild();
         watch.lastValue = newValue;
@@ -325,8 +324,7 @@ class _WatchItState {
       BuildContext context,
       AsyncSnapshot<R> snapshot,
       void Function() cancel,
-    )
-        handler, {
+    ) handler, {
     R? initialValue,
     String? instanceName,
   }) {

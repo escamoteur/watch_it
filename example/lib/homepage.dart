@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_weather_demo/weather_manager.dart';
 import 'package:watch_it/watch_it.dart';
@@ -28,22 +27,11 @@ class _HomePageState extends State<HomePage> {
 
     final bool isRunning =
         watch(di<WeatherManager>().updateWeatherCommand.isExecuting).value;
-    final bool isRunning2 = watchIt(WeatherManager,
-        selectProperty: (WeatherManager x) =>
-            x.updateWeatherCommand.isExecuting).value as bool;
-    final bool isRunning3 = watchIt<WeatherManager, ValueListenable<bool>>(
-        selectProperty: (x) => x.updateWeatherCommand.isExecuting).value;
 
-    final bool isRunning4 =
-        watchItX((WeatherManager x) => x.updateWeatherCommand.isExecuting);
-    final bool isRunning5 = watchItX<WeatherManager, bool>(
-        (x) => x.updateWeatherCommand.isExecuting);
-
-    final updateButtonEnbaled = watchIt(
-        selectProperty: (WeatherManager x) =>
-            x.updateWeatherCommand.canExecute).value;
-    final switchValue = watchIt(
-        selectProperty: (WeatherManager x) => x.setExecutionStateCommand).value;
+    final updateButtonEnbaled = watchIt<WeatherManager>()
+        .select((x) => x.updateWeatherCommand.canExecute);
+    final switchValue =
+        watchIt<WeatherManager>().select((x) => x.setExecutionStateCommand);
 
     return Scaffold(
       appBar: AppBar(title: Text("WeatherDemo")),
