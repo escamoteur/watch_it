@@ -18,15 +18,7 @@ part 'widgets.dart';
 /// function used for this type or based on a name.
 /// for factories you can pass up to 2 parameters [param1,param2] they have to match the types
 /// given at registration with [registerFactoryParam()]
-T di<T extends Object>(
-        {String? instanceName, dynamic param1, dynamic param2}) =>
-    GetIt.I<T>(instanceName: instanceName, param1: param1, param2: param2);
-
-/// like [get] but for async registrations
-Future<T> getAsync<T extends Object>(
-        {String? instanceName, dynamic param1, dynamic param2}) =>
-    GetIt.I.getAsync<T>(
-        instanceName: instanceName, param1: param1, param2: param2);
+final di = GetIt.I;
 
 T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
@@ -36,26 +28,15 @@ T watch<T extends Listenable>(T target) {
   return target;
 }
 
-R watchIt<T extends Object, R extends Listenable>(
-    {R Function(T)? selectProperty, String? instanceName}) {
+T watchIt<T extends Listenable>({String? instanceName}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
-  R observedObject;
-  if (selectProperty != null) {
-    observedObject = selectProperty(di<T>(instanceName: instanceName));
-  } else {
-    if (T is Listenable) {
-      observedObject = di<T>(instanceName: instanceName) as R;
-    } else {
-      throw ArgumentError(
-          'Type T has to be a Listenable or the select function has to return a Listenable');
-    }
-  }
+  final observedObject = di<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
   return observedObject;
 }
 
-R watchItX<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
+R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
@@ -65,24 +46,15 @@ R watchItX<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
   return observedObject.value;
 }
 
-/// To observe `ValueListenables`
-/// like [get] but it also registers a listener to [T] and
-/// triggers a rebuild every time [T].value changes
-/// If [target] is not null whatch will observe this Object instead of
-/// looking inside GetIt
-R watchProperty<T extends Listenable, R>(R Function(Listenable) selectProperty,
+R watchProperty<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName}) {
   assert(_activeWatchItState != null,
       'watchIt can only be called inside a build function');
-  throwIfNot(
-      T is Listenable,
-      ArgumentError(
-          'The select function has to return a ValueListenable or the parent object has to be a Listenable'));
   late final T observedObject;
 
   final parentObject = target ?? di<T>(instanceName: instanceName);
   final R observedProperty = selectProperty(parentObject);
-  assert(observedProperty! is Listenable,
+  assert(observedProperty! is! Listenable,
       'selectProperty returns a Listenable. Use watchIt instead');
   observedObject = parentObject;
   _activeWatchItState!
@@ -101,9 +73,9 @@ R watchProperty<T extends Listenable, R>(R Function(Listenable) selectProperty,
 /// will cancel the previous subscription and subscribe to the new stream.
 /// [preserveState] determines then if the new initial value should be the last
 /// value of the previous stream or again [initialValue]
-AsyncSnapshot<R> watchStream<T extends Object, R>({
+AsyncSnapshot<R> watchStream<T extends Object, R>(
+  Stream<R> Function(T)? select, {
   T? target,
-  Stream<R> Function(T)? select,
   R? initialValue,
   bool preserveState = true,
   String? instanceName,
@@ -141,9 +113,9 @@ AsyncSnapshot<R> watchStream<T extends Object, R>({
 /// of the new Future.
 /// [preserveState] determines then if the new initial value should be the last
 /// value of the previous Future or again [initialValue]
-AsyncSnapshot<R?> watchFuture<T extends Object, R>({
+AsyncSnapshot<R?> watchFuture<T extends Object, R>(
+  Future<R> Function(T)? select, {
   T? target,
-  Future<R> Function(T)? select,
   required R initialValue,
   String? instanceName,
   bool preserveState = true,
@@ -178,11 +150,11 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>({
 /// All handler get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
 void registerHandler<T extends Object, R>({
-  T? target,
   ValueListenable<R> Function(T)? select,
   required void Function(
           BuildContext context, R newValue, void Function() cancel)
       handler,
+  T? target,
   bool executeImmediately = false,
   String? instanceName,
 }) {
@@ -211,15 +183,15 @@ void registerHandler<T extends Object, R>({
 /// with that value
 /// All handler get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
-void registerStreamHandler<T extends Object, R>(
-  T? target,
+void registerStreamHandler<T extends Object, R>({
   Stream<R> Function(T)? select,
-  void Function(BuildContext context, AsyncSnapshot<R?> newValue,
+  required void Function(BuildContext context, AsyncSnapshot<R?> newValue,
           void Function() cancel)
       handler,
   R? initialValue,
+  T? target,
   String? instanceName,
-) {
+}) {
   Stream<R>? observedObject;
 
   if (select != null) {

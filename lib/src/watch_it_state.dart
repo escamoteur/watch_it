@@ -7,7 +7,7 @@ class _WatchEntry<TObservedObject, TValue> {
   final void Function(_WatchEntry entry) _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
-  TValue? Function(Listenable)? selector;
+  TValue? Function(TObservedObject)? selector;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
@@ -24,10 +24,11 @@ class _WatchEntry<TObservedObject, TValue> {
   }
 
   bool watchesTheSameAndNotHandler(_WatchEntry entry) {
+    // we can't distinguish properties of simple types from each others
+    // so we allow multiple watches on them
     if (isHandlerWatch) return false;
     if (entry.observedObject != null) {
-      if (entry.observedObject == observedObject &&
-          observedObject is ValueListenable) {
+      if (entry.observedObject == observedObject) {
         return true;
       }
       return false;
@@ -179,7 +180,7 @@ class _WatchItState {
 
   watchOnly<T extends Listenable, R>({
     required T listenable,
-    required R Function(Listenable) only,
+    required R Function(T) only,
   }) {
     // final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
 
@@ -192,7 +193,7 @@ class _WatchItState {
         watch.dispose();
       }
     } else {
-      watch = _WatchEntry<Listenable, R>(
+      watch = _WatchEntry<T, R>(
           observedObject: listenable,
           selector: only,
           lastValue: only(listenable),
@@ -325,8 +326,7 @@ class _WatchItState {
       BuildContext context,
       AsyncSnapshot<R> snapshot,
       void Function() cancel,
-    )
-        handler, {
+    ) handler, {
     R? initialValue,
     String? instanceName,
   }) {
