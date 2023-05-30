@@ -7,7 +7,6 @@ class _WatchEntry<TObservedObject, TValue> {
   final void Function(_WatchEntry entry) _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
-  bool isSelectorWatch;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
@@ -16,7 +15,6 @@ class _WatchEntry<TObservedObject, TValue> {
       required void Function(_WatchEntry entry) dispose,
       this.lastValue,
       this.isHandlerWatch = false,
-      this.isSelectorWatch = false,
       required this.observedObject})
       : _dispose = dispose;
   void dispose() {
@@ -24,7 +22,7 @@ class _WatchEntry<TObservedObject, TValue> {
   }
 
   bool watchesTheSameAndNotHandler(_WatchEntry entry) {
-    if (isHandlerWatch || isSelectorWatch) return false;
+    if (isHandlerWatch) return false;
     if (entry.observedObject != null) {
       if (entry.observedObject == observedObject) {
         return true;
@@ -194,7 +192,6 @@ class _WatchItState {
       watch = _WatchEntry<Listenable, dynamic>(
           observedObject: listenable,
           lastValue: only(listenable as T),
-          isSelectorWatch: true,
           dispose: (x) =>
               x.observedObject!.removeListener(x.notificationHandler!));
       _appendWatch(watch, allowMultipleSubcribers: true);
