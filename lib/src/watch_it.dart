@@ -10,16 +10,74 @@ part 'mixins.dart';
 part 'watch_it_state.dart';
 part 'widgets.dart';
 
-/// all the following functions can be called inside the build function but also
-/// in e.g. in `initState` of a `StatefulWidget`.
-/// The mixin takes care that everything is correctly disposed.
-
-/// retrieves or creates an instance of a registered type [T] depending on the registration
-/// function used for this type or based on a name.
-/// for factories you can pass up to 2 parameters [param1,param2] they have to match the types
-/// given at registration with [registerFactoryParam()]
+/// WatchIt exports the default instance of get_it as a global variable which lets
+/// you access it from anywhere in your app. To access any in get_it registered
+/// object you only have to type `di<MyType>()` instead of `GetIt.I<MyType>()`
+/// if you want to use a different instance of get_it you can pass it to the
+/// the functions of this library as an optional parameter
 final di = GetIt.I;
 
+/// The Watch functions:
+///
+/// The watch functions are the core of this library. They allow you to observe
+/// any Listenable, Stream or Future and trigger a rebuild of your widget whenever
+/// the watched object changes.
+///
+/// `ChangeNotifier` based example:
+/// ```dart
+/// // Create a ChangeNotifier based model
+/// class UserModel extends ChangeNotifier {
+///   get name = _name;
+///   String _name = '';
+///   set name(String value){
+///     _name = value;
+///     notifyListeners();
+///   }
+///   ...
+/// }
+///
+/// // Register it
+/// di.registerSingleton<UserModel>(UserModel());
+///
+/// // Watch it
+/// class UserNameText extends WatchingWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     final userName = watchPropertyValue((UserModel m) => m.name);
+///     return Text(userName);
+///   }
+/// }
+/// ```
+///
+/// there are the following functions:
+///
+/// * [watch] - observes any Listenable you have access to
+/// * [watchIt] - observes any Listenable registered in get_it
+/// * [watchValue] - observes a ValueListenable property of an object regisertered in get_it
+/// * [watchPropertyValue] - observes a property of a Listenable object and trigger a rebuild
+///   whenever the Listenable notifies a change and the value of the property changes
+/// * [watchStream] - observes a Stream and triggers a rebuild whenever the Stream emits
+///   a new value
+/// * [watchFuture] - observes a Future and triggers a rebuild whenever the Future completes
+///
+/// To be able to use the functions you have either to derive your widget from
+/// [WatchingWidget] or [WatchingStatefulWidget] or use the [WatchItMixin] in your
+/// widget class.
+///
+/// To use the watch functions you have to call them inside the build function of
+/// a [WatchingWidget] or [WatchingStatefulWidget] or a class that uses the
+/// [WatchItMixin]. They basically allow you to avoid having to clutter your
+/// widget tree with `ValueListenableBuilder`, `StreamBuilder` or `FutureBuilder`
+/// widgets. Making your code more readable and maintainable.
+
+/// The functions in detail:
+
+/// [watch] observes any Listenables and triggers a rebuild whenever it notifies
+/// a change.That listenable could be passed in as a parameter or be accessed via
+/// get_it. Like `final userName = watch(di<UserManager>()).userName;` if UserManager is
+/// a Listenable (eg. ChangeNotifier).
+/// if any of the following functions don't fit your needs you can probably use
+/// this one by manually providing the Listenable that should be observed.
 T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
@@ -28,31 +86,70 @@ T watch<T extends Listenable>(T target) {
   return target;
 }
 
-T watchIt<T extends Listenable>({String? instanceName}) {
+/// [watchIt] observes any Listenable registered in get_it and triggers a rebuild whenever
+/// it notifies a change. Its basically a shortcut for `watch(di<T>())`
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+/// [getIt] is the optional instance of get_it to use if you want to use the
+/// default one. 99% of the time you won't need this.
+T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
-  final observedObject = di<T>(instanceName: instanceName);
+  final getItInstance = getIt ?? di;
+  final observedObject = getItInstance<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
   return observedObject;
 }
 
+/// [watchValue] observes a ValueListenable property of an object regisertered in get_it
+/// and triggers a rebuild whenever it notifies a change and returns the current
+/// value of the property. Its basically a shortcut for `watchIt<T>().value`
+/// As this is a common scenario it allows us a type safe concise way to do this.
+/// `final userName = watchValue<UserManager, String>((user) => user.userName);`
+/// is an example of how to use it.
+/// We use the strength of generics to infer the type of the property and write
+/// it even more expressive like this:
+/// `final userName = watchValue((UserManager user) => user.userName);`
+///
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+/// [getIt] is the optional instance of get_it to use if you want to use the
+/// default one. 99% of the time you won't need this.
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
-    {String? instanceName}) {
+    {String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
       'watch can only be called inside a build function');
   ValueListenable<R> observedObject;
-  observedObject = selectProperty(di<T>(instanceName: instanceName));
+  final getItInstance = getIt ?? di;
+  observedObject = selectProperty(getItInstance<T>(instanceName: instanceName));
   _activeWatchItState!.watchListenable(target: observedObject);
   return observedObject.value;
 }
 
-R watchProperty<T extends Listenable, R>(R Function(T) selectProperty,
-    {T? target, String? instanceName}) {
+/// [watchPropertyValue] allows you to onbserve a property of a Listenable object and trigger a rebuild
+/// whenever the Listenable notifies a change and the value of the property changes and
+/// returns the current value of the property.
+/// You can achie a similar result with `watchIt<UserManager>().userName` but but that
+/// would trigger a rebuild whenever any property of the UserManager changes.
+/// `final userName = watchProperty<UserManager, String>((user) => user.userName);`
+/// could be an example. Or even more expressive and concise:
+/// `final userName = watchProperty((UserManager user) => user.userName);`
+/// which lets tha analyzer infer the type of T and R.
+///
+/// if you have a local Listenable and you want to observe only a single property
+/// you can pass it as [target].
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+/// [getIt] is the optional instance of get_it to use if you want to use the
+/// default one. 99% of the time you won't need this.
+R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
+    {T? target, String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
       'watchIt can only be called inside a build function');
   late final T observedObject;
 
-  final parentObject = target ?? di<T>(instanceName: instanceName);
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   final R observedProperty = selectProperty(parentObject);
   assert(observedProperty! is! Listenable,
       'selectProperty returns a Listenable. Use watchIt instead');
@@ -62,7 +159,7 @@ R watchProperty<T extends Listenable, R>(R Function(T) selectProperty,
   return observedProperty;
 }
 
-/// subscribes to the `Stream` returned by [select] and returns
+/// [watchStream] subscribes to the `Stream` returned by [select] and returns
 /// an `AsyncSnapshot` with the latest received data from the `Stream`
 /// Whenever new data is received it triggers a rebuild.
 /// When you call [watchStream] a second time on the same `Stream` it will
@@ -73,12 +170,17 @@ R watchProperty<T extends Listenable, R>(R Function(T) selectProperty,
 /// will cancel the previous subscription and subscribe to the new stream.
 /// [preserveState] determines then if the new initial value should be the last
 /// value of the previous stream or again [initialValue]
+/// if you want to observe a `Stream` that is not registered in get_it you can
+/// pass it as [target].
+/// if pass null as [select] T or [target] have to be a Stream<R>.
+/// [instanceName] is the optional name of the instance if you registered it
 AsyncSnapshot<R> watchStream<T extends Object, R>(
   Stream<R> Function(T)? select, {
   T? target,
   R? initialValue,
   bool preserveState = true,
   String? instanceName,
+  GetIt? getIt,
 }) {
   Stream<R>? observedObject;
 
