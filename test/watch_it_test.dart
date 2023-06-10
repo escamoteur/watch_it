@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
 import 'package:watch_it/watch_it.dart';
 
 class Model extends ChangeNotifier {
@@ -49,7 +48,6 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool watchOnlyNoOnly;
   final bool watchOnlyTwice;
   final bool watchXtwice;
-  final bool watchXonlytwice;
   final bool watchStreamTwice;
   final bool watchFutureTwice;
   final bool testIsReady;
@@ -63,7 +61,6 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       this.watchOnlyNoOnly = false,
       this.watchOnlyTwice = false,
       this.watchXtwice = false,
-      this.watchXonlytwice = false,
       this.watchStreamTwice = false,
       this.watchFutureTwice = false,
       this.testIsReady = false,
@@ -81,39 +78,46 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     String country;
     String country2;
     if (watchOnlyNoOnly) {
-      final Model model = watchIt();
+      final model = watchIt<Model>();
       country = model.country!;
       country2 = model.country2!;
     }
-    country = watch(select: (Model x) => x.country)!;
-    country2 = watch(select: (Model x) => x.country2)!;
-    final name = watch(select: (Model x) => x.name!);
-    final nestedCountry =
-        watchXOnly((Model x) => x.nestedModel!, (Model? n) => n?.country);
+    country = watchPropertyValue((Model x) => x.country)!;
+    country2 = watchPropertyValue((Model x) => x.country2)!;
+    final name = watchValue((Model x) => x.name!);
+    final nestedCountry = watchPropertyValue(
+        target: di<Model>().nestedModel, (Model x) => x.country)!;
 
     final localTargetValue =
-        localTarget != null ? watch(target: localTarget) : 0;
-    final streamResult = watchStream((Model x) => x.stream, 'streamResult');
-    final futureResult = watchFuture((Model x) => x.future, 'futureResult');
-    registerStreamHandler<Model, String>((x) => x.stream, (context, x, cancel) {
-      streamHandlerResult = x.data;
-      if (streamHandlerResult == 'Cancel') {
-        cancel();
-      }
-    });
-    registerFutureHandler<Model, String>((Model x) => x.future,
-        (context, x, cancel) {
-      futureHandlerResult = x.data;
-      if (streamHandlerResult == 'Cancel') {
-        cancel();
-      }
-    });
-    registerHandler((Model x) => x.name!, (context, String x, cancel) {
-      listenableHandlerResult = x;
-      if (x == 'Cancel') {
-        cancel();
-      }
-    });
+        localTarget != null ? watch(localTarget!).value : 0;
+    final streamResult =
+        watchStream((Model x) => x.stream, initialValue: 'streamResult');
+    final futureResult =
+        watchFuture((Model x) => x.future, initialValue: 'futureResult');
+    registerStreamHandler<Model, String>(
+        select: (x) => x.stream,
+        handler: (context, x, cancel) {
+          streamHandlerResult = x.data;
+          if (streamHandlerResult == 'Cancel') {
+            cancel();
+          }
+        });
+    registerFutureHandler<Model, String>(
+        select: (Model x) => x.future,
+        handler: (context, x, cancel) {
+          futureHandlerResult = x.data;
+          if (streamHandlerResult == 'Cancel') {
+            cancel();
+          }
+        });
+    registerHandler(
+        select: (Model x) => x.name!,
+        handler: (context, String x, cancel) {
+          listenableHandlerResult = x;
+          if (x == 'Cancel') {
+            cancel();
+          }
+        });
     bool? allReadyResult;
     if (testAllReady) {
       allReadyResult =
@@ -133,23 +137,21 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
           onReady: (context) => isReadyHandlerResult = 'Ready');
     }
     if (watchTwice) {
-      final notifierVal = watch<ValueNotifier<String>, String>();
+      final notifierVal = watchIt<ValueNotifier<String>>().value;
     }
     if (watchOnlyTwice) {
-      final country = watchOnly((Model x) => x.country);
+      final country = watchPropertyValue((Model x) => x.country);
     }
     if (watchXtwice) {
-      final name = watchX((Model x) => x.name!);
-    }
-    if (watchXonlytwice) {
-      final nestedCountry =
-          watchXOnly((Model x) => x.nestedModel!, (Model n) => n.country);
+      final name = watchValue((Model x) => x.name!);
     }
     if (watchStreamTwice) {
-      final streamResult = watchStream((Model x) => x.stream, 'streamResult');
+      final streamResult =
+          watchStream((Model x) => x.stream, initialValue: 'streamResult');
     }
     if (watchFutureTwice) {
-      final futureResult = watchFuture((Model x) => x.future, 'futureResult');
+      final futureResult =
+          watchFuture((Model x) => x.future, initialValue: 'futureResult');
     }
     return Directionality(
       textDirection: TextDirection.ltr,
