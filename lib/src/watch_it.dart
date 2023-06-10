@@ -11,9 +11,9 @@ part 'watch_it_state.dart';
 part 'widgets.dart';
 
 /// WatchIt exports the default instance of get_it as a global variable which lets
-/// you access it from anywhere in your app. To access any in get_it registered
-/// object you only have to type `di<MyType>()` instead of `GetIt.I<MyType>()`
-/// if you want to use a different instance of get_it you can pass it to the
+/// you access it from anywhere in your app. To access any get_it registered
+/// object you only have to type `di<MyType>()` instead of `GetIt.I<MyType>()`.
+/// if you don't want to use a different instance of get_it you can pass it to
 /// the functions of this library as an optional parameter
 final di = GetIt.I;
 
@@ -73,7 +73,7 @@ final di = GetIt.I;
 /// The functions in detail:
 
 /// [watch] observes any Listenables and triggers a rebuild whenever it notifies
-/// a change.That listenable could be passed in as a parameter or be accessed via
+/// a change. That listenable could be passed in as a parameter or be accessed via
 /// get_it. Like `final userName = watch(di<UserManager>()).userName;` if UserManager is
 /// a Listenable (eg. ChangeNotifier).
 /// if any of the following functions don't fit your needs you can probably use
@@ -90,7 +90,7 @@ T watch<T extends Listenable>(T target) {
 /// it notifies a change. Its basically a shortcut for `watch(di<T>())`
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
-/// [getIt] is the optional instance of get_it to use if you want to use the
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
@@ -113,7 +113,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 ///
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
-/// [getIt] is the optional instance of get_it to use if you want to use the
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
@@ -129,18 +129,20 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 /// [watchPropertyValue] allows you to onbserve a property of a Listenable object and trigger a rebuild
 /// whenever the Listenable notifies a change and the value of the property changes and
 /// returns the current value of the property.
-/// You can achie a similar result with `watchIt<UserManager>().userName` but but that
+/// You can achie a similar result with `watchIt<UserManager>().userName` but that
 /// would trigger a rebuild whenever any property of the UserManager changes.
 /// `final userName = watchProperty<UserManager, String>((user) => user.userName);`
 /// could be an example. Or even more expressive and concise:
 /// `final userName = watchProperty((UserManager user) => user.userName);`
 /// which lets tha analyzer infer the type of T and R.
 ///
-/// if you have a local Listenable and you want to observe only a single property
+/// If you have a local Listenable and you want to observe only a single property
 /// you can pass it as [target].
+///
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
-/// [getIt] is the optional instance of get_it to use if you want to use the
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt}) {
@@ -170,10 +172,14 @@ R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
 /// will cancel the previous subscription and subscribe to the new stream.
 /// [preserveState] determines then if the new initial value should be the last
 /// value of the previous stream or again [initialValue]
-/// if you want to observe a `Stream` that is not registered in get_it you can
+/// If you want to observe a `Stream` that is not registered in get_it you can
 /// pass it as [target].
-/// if pass null as [select] T or [target] have to be a Stream<R>.
+/// if you pass null as [select], T or [target] has to be a Stream<R>.
 /// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
 AsyncSnapshot<R> watchStream<T extends Object, R>(
   Stream<R> Function(T)? select, {
   T? target,
@@ -184,12 +190,13 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
 }) {
   Stream<R>? observedObject;
 
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   if (select != null) {
-    observedObject = select(target ?? di<T>(instanceName: instanceName));
+    observedObject = select(parentObject);
   } else {
     if (T is Stream<R>) {
-      observedObject =
-          (target ?? di<T>(instanceName: instanceName)) as Stream<R>;
+      observedObject = (parentObject) as Stream<R>;
     } else {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Stream');
@@ -202,12 +209,12 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
       preserveState: preserveState);
 }
 
-/// awaits the ` Future` returned by [select] and triggers a rebuild as soon
-/// as the `Future` completes. After that it returns
+/// [watchFuture] observes the `Future` returned by [select] and triggers a rebuild as soon
+/// as this `Future` completes. After that it returns
 /// an `AsyncSnapshot` with the received data from the `Future`
 /// When you call [watchFuture] a second time on the same `Future` it will
 /// return the last received data but not observe the Future a another time.
-/// To be able to use [watchStream] inside a `build` function
+/// To be able to use [watchFuture] inside a `build` function
 /// we have to pass [initialValue] so that it can return something before
 /// the `Future` has completed
 /// if [select] returns a different `Future` than on the last call, [watchFuture]
@@ -215,21 +222,31 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
 /// of the new Future.
 /// [preserveState] determines then if the new initial value should be the last
 /// value of the previous Future or again [initialValue]
+/// If you want to observe a `Future` that is not registered in get_it you can
+/// pass it as [target].
+/// if you pass null as [select], T or [target] has to be a Future<R>.
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
 AsyncSnapshot<R?> watchFuture<T extends Object, R>(
   Future<R> Function(T)? select, {
   T? target,
   required R initialValue,
   String? instanceName,
   bool preserveState = true,
+  GetIt? getIt,
 }) {
   Future<R>? observedObject;
 
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   if (select != null) {
-    observedObject = select(target ?? di<T>(instanceName: instanceName));
+    observedObject = select(parentObject);
   } else {
     if (T is Future<R>) {
-      observedObject =
-          (target ?? di<T>(instanceName: instanceName)) as Future<R>;
+      observedObject = (observedObject) as Future<R>;
     } else {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Future');
@@ -243,14 +260,23 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
       allowMultipleSubscribers: false);
 }
 
-/// registers a [handler] for a `ValueListenable` exactly once on the first build
+/// [registerHandler] registers a [handler] function for a `ValueListenable`
+/// exactly once on the first build
 /// and unregisters is when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
-/// stored in GetIt. If the object itself if the `ValueListenable` pass `(x)=>x` here
+/// stored in GetIt.
 /// If you set [executeImmediately] to `true` the handler will be called immediately
-/// with the current value of the `ValueListenable`.
-/// All handler get passed in a [cancel] function that allows to kill the registration
+/// with the current value of the `ValueListenable` and not on the first change notificaion.
+/// All handler functions get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
+/// If you want to register a handler to a Listenable that is not registered in get_it you can
+/// pass it as [target].
+/// if you pass null as [select], T or [target] has to be a Listenable or ValueListenable.
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
 void registerHandler<T extends Object, R>({
   ValueListenable<R> Function(T)? select,
   required void Function(
@@ -259,15 +285,17 @@ void registerHandler<T extends Object, R>({
   T? target,
   bool executeImmediately = false,
   String? instanceName,
+  GetIt? getIt,
 }) {
   Listenable? observedObject;
 
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   if (select != null) {
-    observedObject = select(target ?? di<T>(instanceName: instanceName));
+    observedObject = select(parentObject);
   } else {
     if (T is Listenable) {
-      observedObject =
-          (target ?? di<T>(instanceName: instanceName)) as Listenable;
+      observedObject = (parentObject) as Listenable;
     } else {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Listenable');
@@ -277,14 +305,23 @@ void registerHandler<T extends Object, R>({
       instanceName: instanceName, executeImmediately: executeImmediately);
 }
 
-/// registers a [handler] for a `Stream` exactly once on the first build
+/// [registerStreamHandler] registers a [handler] function for a `Stream` exactly
+/// once on the first build
 /// and unregisters is when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
-/// stored in GetIt. If the object itself if the `Stream` pass `(x)=>x` here
+/// stored in GetIt.
 /// If you pass [initialValue] your passed handler will be executes immediately
 /// with that value
-/// All handler get passed in a [cancel] function that allows to kill the registration
+/// All handler functions get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
+/// If you want to register a handler to a Stream that is not registered in get_it you can
+/// pass it as [target].
+/// if you pass null as [select], T or [target] has to be a Stream<R>.
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
 void registerStreamHandler<T extends Object, R>({
   Stream<R> Function(T)? select,
   required void Function(BuildContext context, AsyncSnapshot<R?> newValue,
@@ -293,15 +330,17 @@ void registerStreamHandler<T extends Object, R>({
   R? initialValue,
   T? target,
   String? instanceName,
+  GetIt? getIt,
 }) {
   Stream<R>? observedObject;
 
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   if (select != null) {
-    observedObject = select(target ?? di<T>(instanceName: instanceName));
+    observedObject = select(parentObject);
   } else {
     if (T is Stream<R>) {
-      observedObject =
-          (target ?? di<T>(instanceName: instanceName)) as Stream<R>;
+      observedObject = (parentObject) as Stream<R>;
     } else {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Stream');
@@ -311,34 +350,46 @@ void registerStreamHandler<T extends Object, R>({
       initialValue: initialValue, instanceName: instanceName);
 }
 
-/// registers a [handler] for a `Future` exactly once on the first build
+/// [registerFutureHandler] registers a [handler] function for a `Future` exactly
+/// once on the first build
 /// and unregisters is when the widget is destroyed.
-/// This handler will only called once when the `Future` completes.
+/// This handler will only be called once when the `Future` completes.
 /// [select] allows you to register the handler to a member of the of the Object
-/// stored in GetIt. If the object itself if the `Future` pass `(x)=>x` here
+/// stored in GetIt.
 /// If you pass [initialValue] your passed handler will be executes immediately
 /// with that value.
 /// All handler get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
-/// /// if the Future has completed [handler] will be called every time until
+/// if the Future has completed [handler] will be called every time until
 /// the handler calls `cancel` or the widget is destroyed
+///
+/// If you want to register a handler to a Future that is not registered in get_it you can
+/// pass it as [target].
+/// if you pass null as [select], T or [target] has to be a Future<R>.
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
 void registerFutureHandler<T extends Object, R>({
-  T? target,
   Future<R> Function(T)? select,
+  T? target,
   required void Function(BuildContext context, AsyncSnapshot<R?> newValue,
           void Function() cancel)
       handler,
   R? initialValue,
   String? instanceName,
+  GetIt? getIt,
 }) {
   Future<R>? observedObject;
 
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   if (select != null) {
-    observedObject = select(target ?? di<T>(instanceName: instanceName));
+    observedObject = select(parentObject);
   } else {
     if (T is Future<R>) {
-      observedObject =
-          (target ?? di<T>(instanceName: instanceName)) as Future<R>;
+      observedObject = (parentObject) as Future<R>;
     } else {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Future');
@@ -353,7 +404,7 @@ void registerFutureHandler<T extends Object, R>({
 }
 
 /// returns `true` if all registered async or dependent objects are ready
-/// and call [onReady] [onError] handlers when the all-ready state is reached
+/// and call [onReady] and [onError] handlers when the all-ready state is reached
 /// you can force a timeout Exceptions if [allReady] hasn't
 /// return `true` within [timeout]
 /// It will trigger a rebuild if this state changes

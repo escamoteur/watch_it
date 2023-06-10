@@ -496,10 +496,12 @@ class _WatchItState {
   }
 
   bool _scopeWasPushed = false;
+  String? _scopeName;
 
   void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
     if (!_scopeWasPushed) {
-      GetIt.I.pushNewScope(dispose: dispose, init: init);
+      _scopeName = 'AutoScope: ${DateTime.now().microsecondsSinceEpoch}';
+      GetIt.I.pushNewScope(dispose: dispose, init: init, scopeName: _scopeName);
       _scopeWasPushed = true;
     }
   }
@@ -513,7 +515,9 @@ class _WatchItState {
 
   void clearRegistratons() {
     // print('clearRegistration');
-    _watchList.forEach((x) => x.dispose());
+    for (var x in _watchList) {
+      x.dispose();
+    }
     _watchList.clear();
     currentWatchIndex = null;
   }
@@ -522,7 +526,7 @@ class _WatchItState {
     // print('dispose');
     clearRegistratons();
     if (_scopeWasPushed) {
-      GetIt.I.popScope();
+      GetIt.I.dropScope(_scopeName!);
     }
     _element = null; // making sure the Garbage collector can do its job
   }
