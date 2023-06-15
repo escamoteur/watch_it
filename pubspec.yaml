@@ -1,12 +1,12 @@
 name: watch_it
 description: The simple state management powered by get_it
-version: 0.9.0
+version: 0.9.1
 homepage: https://github.com/escamoteur/watch_it
 funding:
-  - https://github.com/sponsors/escmoteur/
+  - https://github.com/sponsors/escamoteur/
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: '>=2.19.6 <4.0.0'
   flutter: ">=3.0.0"
 
 dependencies:
