@@ -101,13 +101,13 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   return observedObject;
 }
 
-/// [watchValue] observes a ValueListenable property of an object regisertered in get_it
-/// and triggers a rebuild whenever it notifies a change and returns the current
-/// value of the property. Its basically a shortcut for `watchIt<T>().value`
+/// [watchValue] observes a ValueListenable property of an object registered in get_it
+/// and triggers a rebuild whenever it notifies a change and returns its current
+/// value. It's basically a shortcut for `watchIt<T>().value`
 /// As this is a common scenario it allows us a type safe concise way to do this.
 /// `final userName = watchValue<UserManager, String>((user) => user.userName);`
 /// is an example of how to use it.
-/// We use the strength of generics to infer the type of the property and write
+/// We can use the strength of generics to infer the type of the property and write
 /// it even more expressive like this:
 /// `final userName = watchValue((UserManager user) => user.userName);`
 ///
@@ -126,7 +126,7 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
   return observedObject.value;
 }
 
-/// [watchPropertyValue] allows you to onbserve a property of a Listenable object and trigger a rebuild
+/// [watchPropertyValue] allows you to observe a property of a Listenable object and trigger a rebuild
 /// whenever the Listenable notifies a change and the value of the property changes and
 /// returns the current value of the property.
 /// You can achieve a similar result with `watchIt<UserManager>().userName` but that
@@ -156,8 +156,8 @@ R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
   assert(observedProperty! is! Listenable,
       'selectProperty returns a Listenable. Use watchIt instead');
   observedObject = parentObject;
-  _activeWatchItState!
-      .watchOnly<T, R>(listenable: observedObject, only: selectProperty);
+  _activeWatchItState!.watchPropertyValue<T, R>(
+      listenable: observedObject, only: selectProperty);
   return observedProperty;
 }
 

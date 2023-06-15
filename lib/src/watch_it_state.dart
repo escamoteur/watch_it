@@ -178,7 +178,7 @@ class _WatchItState {
     }
   }
 
-  watchOnly<T extends Listenable, R>({
+  watchPropertyValue<T extends Listenable, R>({
     required T listenable,
     required R Function(T) only,
   }) {
