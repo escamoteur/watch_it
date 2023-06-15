@@ -1,10 +1,10 @@
+
+[:heart: Sponsor](https://github.com/sponsors/escamoteur) <a href="https://www.buymeacoffee.com/escamoteur" target="_blank"><img align="right" src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 # watch_it
 A simple state management solution powered by get_it.
 
-[:heart: Sponsor](https://github.com/sponsors/escamoteur) <a href="https://www.buymeacoffee.com/escamoteur" target="_blank"><img align="right" src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-###
-
->This package is the successor of the get_it_mixin in [here you can find what's new](#whats-different-from-the-get_it_mixin)
+>This package is the successor of the get_it_mixin, [here you can find what's new](#whats-different-from-the-get_it_mixin)
 
 This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
 
