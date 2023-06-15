@@ -162,7 +162,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
           Text(country, key: const Key('country')),
           Text(country2, key: const Key('country2')),
           Text(name, key: const Key('name')),
-          Text(nestedCountry!, key: const Key('nestedCountry')),
+          Text(nestedCountry, key: const Key('nestedCountry')),
           Text(localTargetValue.toString(), key: const Key('localTarget')),
           Text(streamResult.data!, key: const Key('streamResult')),
           Text(futureResult.data!, key: const Key('futureResult')),
