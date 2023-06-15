@@ -156,15 +156,43 @@ If you want to know more about the reasons for this rule check out [Lifting the 
 
 # The watch functions in detail:
 
-## `watch()`
+## Watching `Listenables / ChangeNotifier`
 `watch` observes any `Listenable` that you pass as parameter and triggers a rebuild whenever it notifies a change. 
 ```dart
 T watch<T extends Listenable>(T target);
 ```
-That listenable could be passed in as a parameter or be accessed via get_it. Like `final userName = watch(di<UserManager>()).userName;` given that `UserManager` is a `Listenable` (eg. `ChangeNotifier`).
+That listenable is passed directly in as a parameter which means it could be  some local variable/property or also come from get_it. Like 
+```dart
+`final userName = watch(di<UserModel>()).name;
+``` 
+given that `UserManager` is a `Listenable` (eg. `ChangeNotifier`).
+
 If all of the following functions don't fit your needs you can probably use this one by manually providing the Listenable that should be observed.
 
-## `watchIt`
+Example:
+```dart
+class CounterModel with ChangeNotifier {
+  int _count = 0;
+  int get count => _count;
+
+  void increment() {
+    _count += 1;
+    notifyListeners();
+  }
+}
+
+final counter = CounterModel();
+...
+
+Widget build(BuildContext context) {
+  watch(counter);
+
+  return Text(counter.count);
+}
+```
+
+
+## Watching `Listenables` inside GetIt
 
 `watchIt` observes any Listenable registered with the type `T` in get_it and triggers a rebuild whenever it notifies a change. Its basically a shortcut for `watch(di<T>())`.
 `instanceName` is the optional name of the instance if you registered it
@@ -174,48 +202,69 @@ default one. 99% of the time you won't need this.
 ```dart
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 ```
-If we take our Listenable `UserManager` from above we could watch it like
+If we take our Listenable `UserModel` from above we could watch it like
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
   Widget build(BuildContext context) {
-    final userName = watchIt<UserManager>().name;
+    final userName = watchIt<UserModel>().name;
     return Text(userName);
   }
-
 }
 ```
 
-## `watchPropertyValue`
-If the listenable parent object that you watch with `watchIt` notifies often because other properties have changed that you don't want to watch, the widget would rebuild without any need. In this case you can use `watchPropertyValue`
+## Watching only one property of a `Listenable` 
+
+If the `Listenable` parent object that you watch with `watchIt` notifies often because other properties have changed that you don't want to watch, the widget would rebuild without any need. In this case you can use `watchPropertyValue`
 ```dart
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt});
 ```
 It will only trigger a rebuild if the watched listenable notifies a change AND the value of the selected property has really changed.
 ```dart
-final userName = watchPropertyValue<UserManager, String>((user) => user.userName);
+final userName = watchPropertyValue<UserManager, String>((m) => m.userName);
 ```
 Could be an example. Or even more expressive and concise:
 ```dart
-final userName = watchPropertyValue((UserManager user) => user.userName);
+final userName = watchPropertyValue((UserManager m) => m.userName);
 ```
 which lets the analyzer infer the type of T and R.
 
 If you have a local Listenable and you want to observe only a single property
-you can pass it as [target].
+you can pass it as [target] and omit the generic parameter:
 
-## `watchValue`
+```dart
+final userManager = UserManager();
+...
+// inside build()
+final userName = watchPropertyValue((m) => m.userName, target: userManger);
+```
+
+## Watching `ValueListenables / ValueNotifiers
 ```dart
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
 ```
 `watchValue` observes a `ValueListenable` (e.g. a `ValueNotifier`) property of an object registered in get_it.
-It triggers a rebuild whenever the `ValueListenable` notifies a change and returns its current
-value. It's basically a shortcut for `watchIt<T>().value`
+It triggers a rebuild whenever the `ValueListenable` notifies a change and returns its current value. It's basically a shortcut for `watchIt<T>().value`
 As this is a common scenario it allows us a type safe concise way to do this.
+
 ```dart
-final userName = watchValue<UserManager, String>((user) => user.userName);
+class UserManager
+{
+  final userName = ChangeNotifier<String>();
+}
+
+// register it in GetIt
+di.registerSingleton(UserManager);
+
+// watch it
+Widget build(BuildContext context) {
+  final userName = watchValue<UserManager, String>((user) => user.userName);
+
+  return Text(userName);
+}
 ```
 is an example of how to use it.
 We can use the strength of generics to infer the type of the property and write
@@ -230,8 +279,45 @@ with a name in get_it.
 `getIt` is the optional instance of get_it to use if you don't want to use the
 default one. 99% of the time you won't need this.
 
-# `watchStream and watchFuture`
-They follow the same pattern. Please check the API docs for details
+### Watching a local ValueListenable/ValueNotifier
+You might wonder why `watchValue` has no `target` parameter. The reason is that Dart doesn't support positional optional parameters in combination of named optional parameters. This would require that you always would have to add a parameter name to the select function when using it in the most common way to watch a `ValueListenable` property of an object inside GetIt.
+As there is already another option to watch local ValueListenable by using `watch` I decided to drop the `target` property from `watchValue`.
+As all `ValueListenable` are also `Listenables` we can watch them with `watch()`:
+
+```dart
+final counter = ValueNotifier<int>();
+
+Widget build(BuildContext context) {
+  final counterValue = watch(counter).value;
+
+  return Text(counterValue);
+}
+```
+This will trigger a rebuild every time the `counter.value` changes.
+
+# Watching Streams and Futures 
+`watchStream and watchFuture` follow nearly the same pattern as the above watch functions. 
+```dart
+class TestStateLessWidget extends WatchingWidget {
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = watchStream((Model x) => x.userNameUpdateStream, 'NoUser');
+    final ready =
+        watchFuture((Model x) => x.initializationReady,false).data;
+
+    return Column(
+      children: [
+        if (ready != true || !currentUser.hasData) // in case of an error ready could be null
+         CircularProgressIndicator()
+         else
+        Text(currentUser.data),
+      ],
+    );
+  }
+}
+```
+
+Please check the API docs for details.
 
 # __isReady<T>() and allReady()__
 A common use case is to toggle a loading state when side effects are in-progress. To check whether any async registration actions inside `GetIt` have completed you can use `allReady()` and `isReady<T>()`. These methods return the current state of any registered async operations and a rebuild is triggered when they change.

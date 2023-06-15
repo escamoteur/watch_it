@@ -1,5 +1,7 @@
+## 0.9.2
+* improving readme
 ## 0.9.1
- fix typo
+ * fix typo
 ## 0.9.0
 * First beta release
 ## 0.0.1
