@@ -129,11 +129,11 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 /// [watchPropertyValue] allows you to onbserve a property of a Listenable object and trigger a rebuild
 /// whenever the Listenable notifies a change and the value of the property changes and
 /// returns the current value of the property.
-/// You can achie a similar result with `watchIt<UserManager>().userName` but that
+/// You can achieve a similar result with `watchIt<UserManager>().userName` but that
 /// would trigger a rebuild whenever any property of the UserManager changes.
-/// `final userName = watchProperty<UserManager, String>((user) => user.userName);`
+/// `final userName = watchPropertyValue<UserManager, String>((user) => user.userName);`
 /// could be an example. Or even more expressive and concise:
-/// `final userName = watchProperty((UserManager user) => user.userName);`
+/// `final userName = watchPropertyValue((UserManager user) => user.userName);`
 /// which lets tha analyzer infer the type of T and R.
 ///
 /// If you have a local Listenable and you want to observe only a single property

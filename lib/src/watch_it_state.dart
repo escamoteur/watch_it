@@ -87,7 +87,7 @@ class _WatchItState {
     if (!entry.isHandlerWatch && !allowMultipleSubcribers) {
       for (final watch in _watchList) {
         if (watch.watchesTheSameAndNotHandler(entry)) {
-          throw ArgumentError('This Object is already watched by get_it_mixin');
+          throw ArgumentError('This Object is already watched by watch_it');
         }
       }
     }

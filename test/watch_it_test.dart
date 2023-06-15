@@ -85,8 +85,8 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     country = watchPropertyValue((Model x) => x.country)!;
     country2 = watchPropertyValue((Model x) => x.country2)!;
     final name = watchValue((Model x) => x.name!);
-    final nestedCountry = watchPropertyValue(
-        target: di<Model>().nestedModel, (Model x) => x.country)!;
+    final nestedCountry =
+        watchPropertyValue(target: di<Model>().nestedModel, (x) => x.country)!;
 
     final localTargetValue =
         localTarget != null ? watch(localTarget!).value : 0;
