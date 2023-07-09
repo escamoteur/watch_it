@@ -53,7 +53,7 @@ final di = GetIt.I;
 ///
 /// * [watch] - observes any Listenable you have access to
 /// * [watchIt] - observes any Listenable registered in get_it
-/// * [watchValue] - observes a ValueListenable property of an object regisertered in get_it
+/// * [watchValue] - observes a ValueListenable property of an object registered in get_it
 /// * [watchPropertyValue] - observes a property of a Listenable object and trigger a rebuild
 ///   whenever the Listenable notifies a change and the value of the property changes
 /// * [watchStream] - observes a Stream and triggers a rebuild whenever the Stream emits
@@ -80,7 +80,7 @@ final di = GetIt.I;
 /// this one by manually providing the Listenable that should be observed.
 T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
 
   _activeWatchItState!.watchListenable(target: target);
   return target;
@@ -94,7 +94,7 @@ T watch<T extends Listenable>(T target) {
 /// default one. 99% of the time you won't need this.
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   final getItInstance = getIt ?? di;
   final observedObject = getItInstance<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
@@ -108,7 +108,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 /// `final userName = watchValue<UserManager, String>((user) => user.userName);`
 /// is an example of how to use it.
 /// We can use the strength of generics to infer the type of the property and write
-/// it even more expressive like this:
+/// it even more expressively like this:
 /// `final userName = watchValue((UserManager user) => user.userName);`
 ///
 /// [instanceName] is the optional name of the instance if you registered it
@@ -118,7 +118,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   ValueListenable<R> observedObject;
   final getItInstance = getIt ?? di;
   observedObject = selectProperty(getItInstance<T>(instanceName: instanceName));
@@ -147,7 +147,7 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchIt can only be called inside a build function');
+      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   late final T observedObject;
 
   final getItInstance = getIt ?? di;
@@ -262,7 +262,7 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
 
 /// [registerHandler] registers a [handler] function for a `ValueListenable`
 /// exactly once on the first build
-/// and unregisters is when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
 /// If you set [executeImmediately] to `true` the handler will be called immediately
@@ -307,10 +307,10 @@ void registerHandler<T extends Object, R>({
 
 /// [registerStreamHandler] registers a [handler] function for a `Stream` exactly
 /// once on the first build
-/// and unregisters is when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
-/// If you pass [initialValue] your passed handler will be executes immediately
+/// If you pass [initialValue] your passed handler will be executed immediately
 /// with that value
 /// All handler functions get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
@@ -352,15 +352,15 @@ void registerStreamHandler<T extends Object, R>({
 
 /// [registerFutureHandler] registers a [handler] function for a `Future` exactly
 /// once on the first build
-/// and unregisters is when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// This handler will only be called once when the `Future` completes.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
-/// If you pass [initialValue] your passed handler will be executes immediately
+/// If you pass [initialValue] your passed handler will be executed immediately
 /// with that value.
-/// All handler get passed in a [cancel] function that allows to kill the registration
+/// All handlers get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
-/// if the Future has completed [handler] will be called every time until
+/// If the Future has completed [handler] will be called every time until
 /// the handler calls `cancel` or the widget is destroyed
 ///
 /// If you want to register a handler to a Future that is not registered in get_it you can
@@ -404,9 +404,9 @@ void registerFutureHandler<T extends Object, R>({
 }
 
 /// returns `true` if all registered async or dependent objects are ready
-/// and call [onReady] and [onError] handlers when the all-ready state is reached
-/// you can force a timeout Exceptions if [allReady] hasn't
-/// return `true` within [timeout]
+/// and call [onReady] and [onError] handlers when the all-ready state is reached.
+/// You can force a timeout Exception if [allReady] hasn't
+/// returned `true` within [timeout].
 /// It will trigger a rebuild if this state changes
 bool allReady(
         {void Function(BuildContext context)? onReady,
@@ -416,8 +416,8 @@ bool allReady(
         .allReady(onReady: onReady, onError: onError, timeout: timeout);
 
 /// registers a handler that is called when the all-ready state is reached
-/// it does not trigger a rebuild like [allReady] does
-/// you can force a timeout Exceptions if [allReady] completed
+/// it does not trigger a rebuild like [allReady] does.
+/// You can force a timeout Exception if [allReady] has completed
 /// within [timeout] which will call [onError]
 void allReadyHandler(void Function(BuildContext context)? onReady,
         {void Function(BuildContext context, Object? error)? onError,
@@ -430,10 +430,10 @@ void allReadyHandler(void Function(BuildContext context)? onReady,
 
 /// returns `true` if the registered async or dependent object defined by [T] and
 /// [instanceName] is ready
-/// and call [onReady] [onError] handlers when the ready state is reached
-/// you can force a timeout Exceptions if [isReady] hasn't
-/// return `true` within [timeout]
-/// It will trigger a rebuild if this state changes
+/// and calls [onReady] [onError] handlers when the ready state is reached.
+/// You can force a timeout Exception if [isReady] hasn't
+/// returned `true` within [timeout].
+/// It will trigger a rebuild if this state changes.
 bool isReady<T extends Object>(
         {void Function(BuildContext context)? onReady,
         void Function(BuildContext context, Object? error)? onError,
@@ -445,19 +445,19 @@ bool isReady<T extends Object>(
         onError: onError,
         timeout: timeout);
 
-/// Pushes a new GetIt-Scope. After pushing it executes [init] where you can register
+/// Pushes a new GetIt-Scope. After pushing, it executes [init] where you can register
 /// objects that should only exist as long as this scope exists.
-/// Can be called inside the `build` method method of a `StatelessWidget`.
+/// Can be called inside the `build` method of a `StatelessWidget`.
 /// It ensures that it's only called once in the lifetime of a widget.
-/// When the widget is destroyed the scope too gets destroyed after [dispose]
+/// When the widget is destroyed the scope also gets destroyed after [dispose]
 /// is executed. If you use this function and you have registered your objects with
-/// an async disposal function, that functions won't be awaited.
+/// an async disposal function, that function won't be awaited.
 /// I would recommend doing pushing and popping from your business layer but sometimes
-/// this might come in handy
+/// this might come in handy.
 void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) =>
     _activeWatchItState!.pushScope(init: init, dispose: dispose);
 
-/// Will triger a rebuild of the Widget if any new GetIt-Scope is pushed or popped
-/// This function will return `true` if the change was a push otherwise `false`
-/// If no change has happend the return value will be null
+/// Will triger a rebuild of the Widget if any new GetIt-Scope is pushed or popped.
+/// This function will return `true` if the change was a push otherwise `false`.
+/// If no change has happened then the return value will be null.
 bool? rebuildOnScopeChanges() => _activeWatchItState!.rebuildOnScopeChanges();
