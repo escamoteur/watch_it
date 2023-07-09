@@ -80,7 +80,7 @@ final di = GetIt.I;
 /// this one by manually providing the Listenable that should be observed.
 T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
 
   _activeWatchItState!.watchListenable(target: target);
   return target;
@@ -94,7 +94,7 @@ T watch<T extends Listenable>(T target) {
 /// default one. 99% of the time you won't need this.
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   final getItInstance = getIt ?? di;
   final observedObject = getItInstance<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
@@ -118,7 +118,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   ValueListenable<R> observedObject;
   final getItInstance = getIt ?? di;
   observedObject = selectProperty(getItInstance<T>(instanceName: instanceName));
@@ -147,7 +147,7 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchIt can only be called inside a build function within a WatchingWidget');
+      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   late final T observedObject;
 
   final getItInstance = getIt ?? di;
