@@ -14,7 +14,7 @@ Supported data types that can be watched are `Listenable / ChangeNotifier`, `Val
 ```dart
  // Create a ChangeNotifier based model
  class UserModel extends ChangeNotifier {
-   get name = _name;
+   get name => _name;
    String _name = '';
    set name(String value){
      _name = value;
