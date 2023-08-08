@@ -117,7 +117,7 @@ class _WatchItState {
 
     // ignore: prefer_function_declarations_over_variables
     final handler = () {
-      _element!.markNeedsBuild();
+      _element?.markNeedsBuild();
     };
     watch.notificationHandler = handler;
     watch.observedObject = target;
@@ -155,6 +155,12 @@ class _WatchItState {
 
     // ignore: prefer_function_declarations_over_variables
     final internalHandler = () {
+      if (_element == null) {
+        /// it seems it can happen that a handler is still
+        /// registered even after dispose was called
+        /// to protect against this we just
+        return;
+      }
       if (handler != null) {
         if (target is ValueListenable) {
           handler(_element!, target.value, watch!.dispose);
@@ -170,6 +176,12 @@ class _WatchItState {
 
     target.addListener(internalHandler);
     if (handler != null && executeImmediately) {
+      if (_element == null) {
+        /// it seems it can happen that a handler is still
+        /// registered even after dispose was called
+        /// to protect against this we just
+        return;
+      }
       if (target is ValueListenable) {
         handler(_element!, target.value, watch.dispose);
       } else {
@@ -182,8 +194,6 @@ class _WatchItState {
     required T listenable,
     required R Function(T) only,
   }) {
-    // final T listenable = target ?? GetIt.I<T>(instanceName: instanceName);
-
     var watch = _getWatch() as _WatchEntry<Listenable, R>?;
 
     if (watch != null) {
@@ -205,6 +215,12 @@ class _WatchItState {
     }
 
     handler() {
+      if (_element == null) {
+        /// it seems it can happen that a handler is still
+        /// registered even after dispose was called
+        /// to protect against this we just
+        return;
+      }
       final newValue = only(listenable);
       if (watch!.lastValue != newValue) {
         _element!.markNeedsBuild();
@@ -265,6 +281,12 @@ class _WatchItState {
     // ignore: cancel_subscriptions
     final subscription = stream.listen(
       (x) {
+        if (_element == null) {
+          /// it seems it can happen that a handler is still
+          /// registered even after dispose was called
+          /// to protect against this we just
+          return;
+        }
         if (handler != null) {
           handler(_element!, AsyncSnapshot.withData(ConnectionState.active, x),
               watch!.dispose);
@@ -274,6 +296,12 @@ class _WatchItState {
         }
       },
       onError: (Object error) {
+        if (_element == null) {
+          /// it seems it can happen that a handler is still
+          /// registered even after dispose was called
+          /// to protect against this we just
+          return;
+        }
         if (handler != null) {
           handler(
               _element!,
@@ -291,6 +319,12 @@ class _WatchItState {
         AsyncSnapshot<R?>.withData(ConnectionState.waiting, initialValue);
 
     if (handler != null) {
+      if (_element == null) {
+        /// it seems it can happen that a handler is still
+        /// registered even after dispose was called
+        /// to protect against this we just
+        return AsyncSnapshot<R>.nothing();
+      }
       if (initialValue != null) {
         handler(
             _element!,
@@ -381,7 +415,7 @@ class _WatchItState {
         /// in case that we got a futureProvider we always keep the first
         /// returned Future
         /// and call the Handler again as the state hasn't changed
-        if (handler != null) {
+        if (handler != null && _element != null) {
           handler(_element!, watch.lastValue!, watch.dispose);
         }
 
@@ -416,6 +450,12 @@ class _WatchItState {
     watch.activeCallbackIdentity = callbackIdentity;
     future.then(
       (x) {
+        if (_element == null) {
+          /// it seems it can happen that a handler is still
+          /// registered even after dispose was called
+          /// to protect against this we just
+          return;
+        }
         if (watch!.activeCallbackIdentity == callbackIdentity) {
           // print('Future completed $x');
           // only update if Future is still valid
@@ -424,6 +464,12 @@ class _WatchItState {
         }
       },
       onError: (Object error) {
+        if (_element == null) {
+          /// it seems it can happen that a handler is still
+          /// registered even after dispose was called
+          /// to protect against this we just
+          return;
+        }
         if (watch!.activeCallbackIdentity == callbackIdentity) {
           // print('Future error');
           watch.lastValue =
@@ -435,7 +481,7 @@ class _WatchItState {
 
     watch.lastValue = AsyncSnapshot<R?>.withData(
         ConnectionState.waiting, initialValue ?? initialValueProvider?.call());
-    if (executeImmediately) {
+    if (executeImmediately && _element != null) {
       handler(_element!, watch.lastValue!, watch.dispose);
     }
 
