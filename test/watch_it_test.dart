@@ -22,8 +22,14 @@ class Model extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setNameNull() {
+    name = null;
+  }
+
+  ValueNotifier<String>? nullValueNotifier;
+
   String? get country2 => _country2;
-  final ValueNotifier<String>? name;
+  ValueNotifier<String>? name;
   final Model? nestedModel;
   // ignore: close_sinks
   final StreamController<String> streamController =
@@ -45,7 +51,7 @@ class Model extends ChangeNotifier {
 
 class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool watchTwice;
-  final bool watchOnlyNoOnly;
+  final bool watchListenableInGetIt;
   final bool watchOnlyTwice;
   final bool watchXtwice;
   final bool watchStreamTwice;
@@ -53,18 +59,22 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool testIsReady;
   final bool testAllReady;
   final bool testAllReadyHandler;
+  final bool watchListenableWithWatchPropertyValue;
+  final bool testNullValueNotifier;
   final ValueListenable<int>? localTarget;
   TestStateLessWidget(
       {Key? key,
       this.localTarget,
       this.watchTwice = false,
-      this.watchOnlyNoOnly = false,
+      this.watchListenableInGetIt = false,
       this.watchOnlyTwice = false,
       this.watchXtwice = false,
       this.watchStreamTwice = false,
       this.watchFutureTwice = false,
       this.testIsReady = false,
       this.testAllReady = false,
+      this.watchListenableWithWatchPropertyValue = false,
+      this.testNullValueNotifier = false,
       this.testAllReadyHandler = false})
       : super(key: key);
 
@@ -75,14 +85,17 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     final onlyRead = di<Model>().constantValue!;
     final notifierVal = watch(di<ValueNotifier<String>>()).value;
 
-    String country;
+    String? country;
     String country2;
-    if (watchOnlyNoOnly) {
+    if (watchListenableInGetIt) {
       final model = watchIt<Model>();
       country = model.country!;
       country2 = model.country2!;
     }
-    country = watchPropertyValue((Model x) => x.country)!;
+    if (watchListenableWithWatchPropertyValue) {
+      final name2 = watchPropertyValue((Model x) => x.name);
+    }
+    country = watchPropertyValue((Model x) => x.country);
     country2 = watchPropertyValue((Model x) => x.country2)!;
     final name = watchValue((Model x) => x.name!);
     final nestedCountry =
@@ -159,7 +172,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
         children: [
           Text(onlyRead, key: const Key('onlyRead')),
           Text(notifierVal, key: const Key('notifierVal')),
-          Text(country, key: const Key('country')),
+          Text(country ?? 'null', key: const Key('country')),
           Text(country2, key: const Key('country2')),
           Text(name, key: const Key('name')),
           Text(nestedCountry, key: const Key('nestedCountry')),
@@ -331,6 +344,14 @@ void main() {
 
     expect(tester.takeException(), isA<ArgumentError>());
   });
+  testWidgets('useWatchPropertyValue on a listenable', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget(
+      watchListenableWithWatchPropertyValue: true,
+    ));
+    await tester.pump();
+
+    expect(tester.takeException(), isA<AssertionError>());
+  });
 
   testWidgets('update of non watched field', (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
@@ -360,7 +381,7 @@ void main() {
     expect(buildCount, 1);
   });
 
-  testWidgets('test watch', (tester) async {
+  testWidgets('test watchValue', (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
     valNotifier.value = '42';
     await tester.pump();
@@ -420,7 +441,7 @@ void main() {
     expect(futureResult, 'futureResult');
     expect(buildCount, 2);
   });
-  testWidgets('test watchX', (tester) async {
+  testWidgets('test watchValue', (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
     theModel.name!.value = '42';
     await tester.pump();
@@ -447,7 +468,7 @@ void main() {
     expect(buildCount, 2);
   });
 
-  testWidgets('test watchXonly', (tester) async {
+  testWidgets('test watchPropertyValue', (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
     theModel.nestedModel!.country = '42';
     await tester.pump();
@@ -474,7 +495,34 @@ void main() {
     expect(futureResult, 'futureResult');
     expect(buildCount, 2);
   });
-  testWidgets('test watchOnly with notification but no value change',
+  testWidgets('test watchPropertyValue with null value', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget());
+    theModel.country = null;
+    await tester.pump();
+
+    final onlyRead =
+        tester.widget<Text>(find.byKey(const Key('onlyRead'))).data;
+    final notifierVal =
+        tester.widget<Text>(find.byKey(const Key('notifierVal'))).data;
+    final country = tester.widget<Text>(find.byKey(const Key('country'))).data;
+    final name = tester.widget<Text>(find.byKey(const Key('name'))).data;
+    final nestedCountry =
+        tester.widget<Text>(find.byKey(const Key('nestedCountry'))).data;
+    final streamResult =
+        tester.widget<Text>(find.byKey(const Key('streamResult'))).data;
+    final futureResult =
+        tester.widget<Text>(find.byKey(const Key('futureResult'))).data;
+
+    expect(onlyRead, 'onlyRead');
+    expect(notifierVal, 'notifierVal');
+    expect(country, 'null');
+    expect(name, 'name');
+    expect(nestedCountry, 'nestedCountry');
+    expect(streamResult, 'streamResult');
+    expect(futureResult, 'futureResult');
+    expect(buildCount, 2);
+  });
+  testWidgets('test watchPropertyValue with notification but no value change',
       (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
     theModel.notifyListeners();
@@ -502,9 +550,9 @@ void main() {
     expect(futureResult, 'futureResult');
     expect(buildCount, 1);
   });
-  testWidgets('test watchOnly with only == null', (tester) async {
+  testWidgets('test watchIt', (tester) async {
     await tester.pumpWidget(TestStateLessWidget(
-      watchOnlyNoOnly: true,
+      watchListenableInGetIt: true,
     ));
     theModel.notifyListeners();
     await tester.pump();

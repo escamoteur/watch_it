@@ -153,7 +153,9 @@ R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
   final getItInstance = getIt ?? di;
   final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
   final R observedProperty = selectProperty(parentObject);
-  assert(observedProperty! is! Listenable,
+  assert(
+      (observedProperty != null && observedProperty is! Listenable) ||
+          (observedProperty == null),
       'selectProperty returns a Listenable. Use watchIt instead');
   observedObject = parentObject;
   _activeWatchItState!.watchPropertyValue<T, R>(
