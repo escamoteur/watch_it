@@ -62,7 +62,7 @@ di.registerSingleton<Model>(Model());
 ```
 You could tell your view to rebuild any time country changes with a simple call to `watchValue`:
 ```dart
-class MyWidget extends StatelessWidget with GetItStatefulWidgetMixin {
+class MyWidget extends StatelessWidget with WacthItMixin {
   @override
   Widget build(BuildContext context) {
     String country = watchValue((Model x) => x.country);

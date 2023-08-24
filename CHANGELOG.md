@@ -1,3 +1,6 @@
+## 1.0.0
+* fix for https://github.com/escamoteur/watch_it/issues/8
+* improved comments thanks to PR by @kevlar700 
 ## 0.9.3
 * added safety checks in case _element gets null but still a handler might get called
 ## 0.9.2
