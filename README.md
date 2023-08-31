@@ -6,6 +6,8 @@ A simple state management solution powered by get_it.
 
 >This package is the successor of the get_it_mixin, [here you can find what's new](#whats-different-from-the-get_it_mixin)
 
+> We now have a support discord server https://discord.gg/xzBwqF8r
+
 This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
 
 Supported data types that can be watched are `Listenable / ChangeNotifier`, `ValueListenable / ValueNotifier`, `Stream` and `Future`. On top off that there are several other powerful function to use in `StatelessWidgets` that normally would require a `StatefulWidget` 

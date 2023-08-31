@@ -1,3 +1,5 @@
+## 1.0.1 
+* small change in documentation
 ## 1.0.0
 * fix for https://github.com/escamoteur/watch_it/issues/8
 * improved comments thanks to PR by @kevlar700 
