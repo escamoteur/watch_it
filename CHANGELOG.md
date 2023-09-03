@@ -1,3 +1,5 @@
+## 1.0.2
+* thanks for PR by @yangsfang https://github.com/escamoteur/watch_it/pull/10
 ## 1.0.1 
 * small change in documentation
 ## 1.0.0
