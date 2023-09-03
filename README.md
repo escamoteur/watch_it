@@ -64,7 +64,7 @@ di.registerSingleton<Model>(Model());
 ```
 You could tell your view to rebuild any time country changes with a simple call to `watchValue`:
 ```dart
-class MyWidget extends StatelessWidget with WacthItMixin {
+class MyWidget extends StatelessWidget with WatchItMixin {
   @override
   Widget build(BuildContext context) {
     String country = watchValue((Model x) => x.country);
@@ -196,7 +196,7 @@ Widget build(BuildContext context) {
 
 ## Watching `Listenables` inside GetIt
 
-`watchIt` observes any Listenable registered with the type `T` in get_it and triggers a rebuild whenever it notifies a change. Its basically a shortcut for `watch(di<T>())`.
+`watchIt` observes any Listenable registered with the type `T` in get_it and triggers a rebuild whenever it notifies a change. It's basically a shortcut for `watch(di<T>())`.
 `instanceName` is the optional name of the instance if you registered it
 with a name in get_it.
 `getIt` is the optional instance of get_it to use if you don't want to use the
@@ -282,7 +282,7 @@ with a name in get_it.
 default one. 99% of the time you won't need this.
 
 ### Watching a local ValueListenable/ValueNotifier
-You might wonder why `watchValue` has no `target` parameter. The reason is that Dart doesn't support positional optional parameters in combination of named optional parameters. This would require that you always would have to add a parameter name to the select function when using it in the most common way to watch a `ValueListenable` property of an object inside GetIt.
+You might wonder why `watchValue` has no `target` parameter. The reason is that Dart doesn't support positional optional parameters in combination with named optional parameters. This would require that you always would have to add a parameter name to the select function when using it in the most common way to watch a `ValueListenable` property of an object inside GetIt.
 As there is already another option to watch local ValueListenable by using `watch` I decided to drop the `target` property from `watchValue`.
 As all `ValueListenable` are also `Listenables` we can watch them with `watch()`:
 
@@ -339,7 +339,7 @@ https://pub.dev/packages/get_it
 
 # Pushing a new GetIt Scope
 
-With `pushScope()` you can push a scope when a Widget/State is mounted, and automatically dropped when the Widget/State is destroyed. You can pass an optional init or dispose function.
+With `pushScope()` you can push a scope when a Widget/State is mounted, and automatically drop it when the Widget/State is destroyed. You can pass an optional init or dispose function.
 ```dart
   void pushScope({void Function(GetIt getIt) init, void Function() dispose});
 ```
@@ -351,13 +351,13 @@ Some people don't like mixins so `WatchIt` offers two Widgets that can be used i
 * `WatchingStatefulWidget` - instead of `StatefulWidget`
 
 # Lifting the magic curtain
-*It's not necessary to understand the following chapter to use `WatchIt` sucessfully.
-You might be wondering how on earth is this possible, that you can watch multiple objects at the same time without passing some identifier to any of the `watch` functions. The reality might feel a bit like a hack but the advantages that you get from it justify it abolutely.
+*It's not necessary to understand the following chapter to use `WatchIt` successfully.
+You might be wondering how on earth is this possible, that you can watch multiple objects at the same time without passing some identifier to any of the `watch` functions. The reality might feel a bit like a hack but the advantages that you get from it justify it absolutely.
 When applying the `WatchItMixin` to a Widget you add a handler into the build mechanism of Flutter that makes sure that before the `build` function is called a `_watchItState` object that contains a reference to the `Element` of this widget plus a list of `WatchEntry`s is assigned to a private global variable. Over this global variable the `watch*` functions can access the `Element` to trigger a rebuild.
 With each `watch*` function call a new `WatchEntry` is added to that list and a counter is incremented.
 When a rebuild is triggered the counter is reset and incremented again with each `watch*` call so that it can access the data it stored during the last build.
 Now it should be clear why the `watch*` functions always have to happen in the same order and no conditionals are allowed that would change the order between two builds because then the relation between `watch*` call and its `WatchEntry` would be messed up.
-If you think that all sounds very familiar to you then probably because the exactly same mechanism is used by `flutter_hooks` or React Hooks.
+If you think that all sounds very familiar to you then probably because the exact same mechanism is used by `flutter_hooks` or React Hooks.
 
 # Find out more!
 
@@ -365,13 +365,13 @@ To learn more about GetIt, watch the presentation: [GetIt in action By Thomas Bu
 
 ## What's different from the `get_it_mixin`
 Two main reasons lead me to replace the `get_it_mixin` package with `watch_it`
-* The name `get_it_mixin seemed not to catch with people and only a fraction of my get_it users used is.
-* The API naming wasn't as intuitive as I thought when first wrote them.
+* The name `get_it_mixin seemed not to catch with people and only a fraction of my get_it users used it.
+* The API naming wasn't as intuitive as I thought when I first wrote them.
 
 These are the main differences:
 * Widgets now can be `const`!
-* a reduced API with more intuitive naming.The old package had too many functions which were only slight variations of each others. You can easily achieve the same functionality with the functions of this package.
+* a reduced API with more intuitive naming.The old package had too many functions which were only slight variations of each other. You can easily achieve the same functionality with the functions of this package.
 * no `get/getX` functions anymore because you can just use the included global `get_it` instance `di<T>`.
-* only one mixin for all Widgets. You only need to apply it to the widget and no mixin for `States` as no all `watch*` functions are global functions.
+* only one mixin for all Widgets. You only need to apply it to the widget and no mixin for `States` as now all `watch*` functions are global functions.
 
 Please let me know if you miss anything
