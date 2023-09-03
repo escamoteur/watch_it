@@ -251,11 +251,10 @@ class _WatchItState {
         /// Only if this isn't used to register a handler
         ///  still the same stream so we can directly return lastvalue
         if (handler == null) {
-          assert(watch.lastValue != null && watch.lastValue!.data != null);
+          assert(watch.lastValue != null && !watch.lastValue!.hasError);
           return AsyncSnapshot<R>.withData(
               watch.lastValue!.connectionState,
-              // ignore: null_check_on_nullable_type_parameter
-              watch.lastValue!.data!);
+              watch.lastValue!.data as R);
         } else {
           return AsyncSnapshot<R>.nothing();
         }
@@ -333,11 +332,10 @@ class _WatchItState {
       }
       return AsyncSnapshot<R>.nothing();
     }
-    assert(watch.lastValue != null && watch.lastValue!.data != null);
+    assert(watch.lastValue != null && !watch.lastValue!.hasError);
     return AsyncSnapshot<R>.withData(
         watch.lastValue!.connectionState,
-        // ignore: null_check_on_nullable_type_parameter
-        watch.lastValue!.data!);
+        watch.lastValue!.data as R);
   }
 
   void registerHandler<T extends Object, R>(
