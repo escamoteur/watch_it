@@ -1,3 +1,5 @@
+## 1.0.3
+* bumped get_it version
 ## 1.0.2
 * thanks for PR by @yangsfang https://github.com/escamoteur/watch_it/pull/10
 ## 1.0.1 
