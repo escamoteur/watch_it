@@ -94,7 +94,7 @@ T watch<T extends Listenable>(T target) {
 /// default one. 99% of the time you won't need this.
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   final getItInstance = getIt ?? di;
   final observedObject = getItInstance<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
@@ -118,7 +118,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchValue can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   ValueListenable<R> observedObject;
   final getItInstance = getIt ?? di;
   observedObject = selectProperty(getItInstance<T>(instanceName: instanceName));
@@ -147,7 +147,7 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchPropertyValue can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   late final T observedObject;
 
   final getItInstance = getIt ?? di;
@@ -190,6 +190,8 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
   String? instanceName,
   GetIt? getIt,
 }) {
+  assert(_activeWatchItState != null,
+      'watchStream can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   Stream<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -240,6 +242,8 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
   bool preserveState = true,
   GetIt? getIt,
 }) {
+  assert(_activeWatchItState != null,
+      'watchFuture can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   Future<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -289,6 +293,8 @@ void registerHandler<T extends Object, R>({
   String? instanceName,
   GetIt? getIt,
 }) {
+  assert(_activeWatchItState != null,
+      'registerHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   Listenable? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -334,6 +340,8 @@ void registerStreamHandler<T extends Object, R>({
   String? instanceName,
   GetIt? getIt,
 }) {
+  assert(_activeWatchItState != null,
+      'registerStreamHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   Stream<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -383,6 +391,8 @@ void registerFutureHandler<T extends Object, R>({
   String? instanceName,
   GetIt? getIt,
 }) {
+  assert(_activeWatchItState != null,
+      'registerFutureHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
   Future<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -411,24 +421,30 @@ void registerFutureHandler<T extends Object, R>({
 /// returned `true` within [timeout].
 /// It will trigger a rebuild if this state changes
 bool allReady(
-        {void Function(BuildContext context)? onReady,
-        void Function(BuildContext context, Object? error)? onError,
-        Duration? timeout}) =>
-    _activeWatchItState!
-        .allReady(onReady: onReady, onError: onError, timeout: timeout);
+    {void Function(BuildContext context)? onReady,
+    void Function(BuildContext context, Object? error)? onError,
+    Duration? timeout}) {
+  assert(_activeWatchItState != null,
+      'allReady can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+  return _activeWatchItState!
+      .allReady(onReady: onReady, onError: onError, timeout: timeout);
+}
 
 /// registers a handler that is called when the all-ready state is reached
 /// it does not trigger a rebuild like [allReady] does.
 /// You can force a timeout Exception if [allReady] has completed
 /// within [timeout] which will call [onError]
 void allReadyHandler(void Function(BuildContext context)? onReady,
-        {void Function(BuildContext context, Object? error)? onError,
-        Duration? timeout}) =>
-    _activeWatchItState!.allReady(
-        onReady: onReady,
-        onError: onError,
-        timeout: timeout,
-        shouldRebuild: false);
+    {void Function(BuildContext context, Object? error)? onError,
+    Duration? timeout}) {
+  assert(_activeWatchItState != null,
+      'allReadyHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+  _activeWatchItState!.allReady(
+      onReady: onReady,
+      onError: onError,
+      timeout: timeout,
+      shouldRebuild: false);
+}
 
 /// returns `true` if the registered async or dependent object defined by [T] and
 /// [instanceName] is ready
@@ -437,15 +453,18 @@ void allReadyHandler(void Function(BuildContext context)? onReady,
 /// returned `true` within [timeout].
 /// It will trigger a rebuild if this state changes.
 bool isReady<T extends Object>(
-        {void Function(BuildContext context)? onReady,
-        void Function(BuildContext context, Object? error)? onError,
-        Duration? timeout,
-        String? instanceName}) =>
-    _activeWatchItState!.isReady<T>(
-        instanceName: instanceName,
-        onReady: onReady,
-        onError: onError,
-        timeout: timeout);
+    {void Function(BuildContext context)? onReady,
+    void Function(BuildContext context, Object? error)? onError,
+    Duration? timeout,
+    String? instanceName}) {
+  assert(_activeWatchItState != null,
+      'isReady can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+  return _activeWatchItState!.isReady<T>(
+      instanceName: instanceName,
+      onReady: onReady,
+      onError: onError,
+      timeout: timeout);
+}
 
 /// Pushes a new GetIt-Scope. After pushing, it executes [init] where you can register
 /// objects that should only exist as long as this scope exists.
@@ -456,10 +475,17 @@ bool isReady<T extends Object>(
 /// an async disposal function, that function won't be awaited.
 /// I would recommend doing pushing and popping from your business layer but sometimes
 /// this might come in handy.
-void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) =>
-    _activeWatchItState!.pushScope(init: init, dispose: dispose);
+void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
+  assert(_activeWatchItState != null,
+      'pushScope can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+  _activeWatchItState!.pushScope(init: init, dispose: dispose);
+}
 
 /// Will triger a rebuild of the Widget if any new GetIt-Scope is pushed or popped.
 /// This function will return `true` if the change was a push otherwise `false`.
 /// If no change has happened then the return value will be null.
-bool? rebuildOnScopeChanges() => _activeWatchItState!.rebuildOnScopeChanges();
+bool? rebuildOnScopeChanges() {
+  assert(_activeWatchItState != null,
+      'rebuildOnScopeChanges can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+  return _activeWatchItState!.rebuildOnScopeChanges();
+}
