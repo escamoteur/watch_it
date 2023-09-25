@@ -6,7 +6,7 @@ A simple state management solution powered by get_it.
 
 >This package is the successor of the get_it_mixin, [here you can find what's new](#whats-different-from-the-get_it_mixin)
 
-> We now have a support discord server https://discord.gg/xzBwqF8r
+> We now have a support discord server https://discord.gg/ZHYHYCM38h
 
 This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
 
