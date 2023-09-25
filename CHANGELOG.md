@@ -1,3 +1,6 @@
+## 1.0.5 
+
+* updates Discord invite link
 ## 1.0.4
 * added some more asserts to provide better error messages in case you forgot to use the WatchItMixin
 ## 1.0.3
