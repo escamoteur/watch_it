@@ -165,7 +165,7 @@ T watch<T extends Listenable>(T target);
 ```
 That listenable is passed directly in as a parameter which means it could be  some local variable/property or also come from get_it. Like 
 ```dart
-`final userName = watch(di<UserModel>()).name;
+final userName = watch(di<UserModel>()).name;
 ``` 
 given that `UserManager` is a `Listenable` (eg. `ChangeNotifier`).
 
@@ -273,7 +273,7 @@ We can use the strength of generics to infer the type of the property and write
 it even more expressive like this:
 
 ```dart
-final userName = watchValue((UserManager user) => user.userName);`
+final userName = watchValue((UserManager user) => user.userName);
 ```
 
 `instanceName` is the optional name of the instance if you registered it
@@ -341,7 +341,7 @@ https://pub.dev/packages/get_it
 
 With `pushScope()` you can push a scope when a Widget/State is mounted, and automatically drop it when the Widget/State is destroyed. You can pass an optional init or dispose function.
 ```dart
-  void pushScope({void Function(GetIt getIt) init, void Function() dispose});
+void pushScope({void Function(GetIt getIt) init, void Function() dispose});
 ```
 The newly created Scope gets a unique name so that it is ensured the right Scope is dropped even if you push or drop manually other Scopes.
 
