@@ -255,7 +255,7 @@ As this is a common scenario it allows us a type safe concise way to do this.
 ```dart
 class UserManager
 {
-  final userName = ChangeNotifier<String>();
+  final userName = ValueNotifier<String>('James');
 }
 
 // register it in GetIt
