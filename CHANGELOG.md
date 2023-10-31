@@ -1,3 +1,5 @@
+## 1.0.6 - 31.10.2023 
+* Typo fixes by PRs from @mym0404 @elitree @florentmx 
 ## 1.0.5 
 
 * updates Discord invite link
