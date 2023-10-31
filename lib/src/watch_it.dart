@@ -80,7 +80,7 @@ final di = GetIt.I;
 /// this one by manually providing the Listenable that should be observed.
 T watch<T extends Listenable>(T target) {
   assert(_activeWatchItState != null,
-      'watch can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watch can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
 
   _activeWatchItState!.watchListenable(target: target);
   return target;
@@ -94,7 +94,7 @@ T watch<T extends Listenable>(T target) {
 /// default one. 99% of the time you won't need this.
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchIt can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   final getItInstance = getIt ?? di;
   final observedObject = getItInstance<T>(instanceName: instanceName);
   _activeWatchItState!.watchListenable(target: observedObject);
@@ -118,7 +118,7 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchValue can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   ValueListenable<R> observedObject;
   final getItInstance = getIt ?? di;
   observedObject = selectProperty(getItInstance<T>(instanceName: instanceName));
@@ -147,7 +147,7 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt}) {
   assert(_activeWatchItState != null,
-      'watchPropertyValue can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchPropertyValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   late final T observedObject;
 
   final getItInstance = getIt ?? di;
@@ -191,7 +191,7 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
-      'watchStream can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchStream can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   Stream<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -243,7 +243,7 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
-      'watchFuture can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'watchFuture can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   Future<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -294,7 +294,7 @@ void registerHandler<T extends Object, R>({
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
-      'registerHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'registerHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   Listenable? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -341,7 +341,7 @@ void registerStreamHandler<T extends Object, R>({
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
-      'registerStreamHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'registerStreamHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   Stream<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -392,7 +392,7 @@ void registerFutureHandler<T extends Object, R>({
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
-      'registerFutureHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'registerFutureHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   Future<R>? observedObject;
 
   final getItInstance = getIt ?? di;
@@ -425,7 +425,7 @@ bool allReady(
     void Function(BuildContext context, Object? error)? onError,
     Duration? timeout}) {
   assert(_activeWatchItState != null,
-      'allReady can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'allReady can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   return _activeWatchItState!
       .allReady(onReady: onReady, onError: onError, timeout: timeout);
 }
@@ -438,7 +438,7 @@ void allReadyHandler(void Function(BuildContext context)? onReady,
     {void Function(BuildContext context, Object? error)? onError,
     Duration? timeout}) {
   assert(_activeWatchItState != null,
-      'allReadyHandler can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'allReadyHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   _activeWatchItState!.allReady(
       onReady: onReady,
       onError: onError,
@@ -458,7 +458,7 @@ bool isReady<T extends Object>(
     Duration? timeout,
     String? instanceName}) {
   assert(_activeWatchItState != null,
-      'isReady can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'isReady can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   return _activeWatchItState!.isReady<T>(
       instanceName: instanceName,
       onReady: onReady,
@@ -477,7 +477,7 @@ bool isReady<T extends Object>(
 /// this might come in handy.
 void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
   assert(_activeWatchItState != null,
-      'pushScope can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'pushScope can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   _activeWatchItState!.pushScope(init: init, dispose: dispose);
 }
 
@@ -486,6 +486,6 @@ void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
 /// If no change has happened then the return value will be null.
 bool? rebuildOnScopeChanges() {
   assert(_activeWatchItState != null,
-      'rebuildOnScopeChanges can only be called inside a build function within a WatchingWidget or a widget using the WhatchItMixin');
+      'rebuildOnScopeChanges can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   return _activeWatchItState!.rebuildOnScopeChanges();
 }
