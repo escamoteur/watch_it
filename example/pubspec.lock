@@ -193,7 +193,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.4"
+    version: "1.0.6"
   web:
     dependency: transitive
     description:

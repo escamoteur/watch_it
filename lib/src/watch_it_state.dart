@@ -253,8 +253,7 @@ class _WatchItState {
         if (handler == null) {
           assert(watch.lastValue != null && !watch.lastValue!.hasError);
           return AsyncSnapshot<R>.withData(
-              watch.lastValue!.connectionState,
-              watch.lastValue!.data as R);
+              watch.lastValue!.connectionState, watch.lastValue!.data as R);
         } else {
           return AsyncSnapshot<R>.nothing();
         }
@@ -334,8 +333,7 @@ class _WatchItState {
     }
     assert(watch.lastValue != null && !watch.lastValue!.hasError);
     return AsyncSnapshot<R>.withData(
-        watch.lastValue!.connectionState,
-        watch.lastValue!.data as R);
+        watch.lastValue!.connectionState, watch.lastValue!.data as R);
   }
 
   void registerHandler<T extends Object, R>(
@@ -486,12 +484,13 @@ class _WatchItState {
     return watch.lastValue!;
   }
 
-  bool allReady(
-      {void Function(BuildContext context)? onReady,
-      void Function(BuildContext context, Object? error)? onError,
-      Duration? timeout,
-      bool shouldRebuild = true}) {
-    return registerFutureHandler<Object, bool>(
+  bool allReady({
+    void Function(BuildContext context)? onReady,
+    void Function(BuildContext context, Object? error)? onError,
+    Duration? timeout,
+    bool shouldRebuild = true,
+  }) {
+    final readyResult = registerFutureHandler<Object, bool>(
       handler: (context, x, dispose) {
         if (x.hasError) {
           onError?.call(context, x.error);
@@ -510,7 +509,17 @@ class _WatchItState {
       /// to a bool because if this Future completes the meaning is true.
       futureProvider: () =>
           GetIt.I.allReady(timeout: timeout).then((_) => true),
-    ).data!;
+    );
+    if (readyResult.hasData) {
+      return readyResult.data!;
+    }
+    if (readyResult.hasError && onError != null) {
+      return false;
+    }
+    if (readyResult.error is WaitingTimeOutException) throw readyResult.error!;
+    throw Exception(
+        'One of your async registrations in GetIt threw an error while waiting for them to finish: \n'
+        '${readyResult.error}\n Enable "break on uncaught exceptions" in your debugger to find out more.');
   }
 
   bool isReady<T extends Object>(
@@ -518,25 +527,37 @@ class _WatchItState {
       void Function(BuildContext context, Object? error)? onError,
       Duration? timeout,
       String? instanceName}) {
-    return registerFutureHandler<Object, bool>(
-        handler: (context, x, cancel) {
-          if (x.hasError) {
-            onError?.call(context, x.error);
-          } else {
-            onReady?.call(context);
-          }
-          (context as Element).markNeedsBuild();
-          cancel(); // we want exactly one call.
-        },
-        allowMultipleSubscribers: false,
-        initialValueProvider: () =>
-            GetIt.I.isReadySync<T>(instanceName: instanceName),
+    final readyResult = registerFutureHandler<Object, bool>(
+      handler: (context, x, cancel) {
+        if (x.hasError) {
+          onError?.call(context, x.error);
+        } else {
+          onReady?.call(context);
+        }
+        (context as Element).markNeedsBuild();
+        cancel(); // we want exactly one call.
+      },
+      allowMultipleSubscribers: false,
+      initialValueProvider: () =>
+          GetIt.I.isReadySync<T>(instanceName: instanceName),
 
-        /// as `GetIt.allReady` returns a Future<void> we convert it
-        /// to a bool because if this Future completes the meaning is true.
-        futureProvider: () => GetIt.I
-            .isReady<T>(instanceName: instanceName, timeout: timeout)
-            .then((_) => true)).data!;
+      /// as `GetIt.allReady` returns a Future<void> we convert it
+      /// to a bool because if this Future completes the meaning is true.
+      futureProvider: () => GetIt.I
+          .isReady<T>(instanceName: instanceName, timeout: timeout)
+          .then((_) => true),
+    );
+
+    if (readyResult.hasData) {
+      return readyResult.data!;
+    }
+    if (readyResult.hasError && onError != null) {
+      return false;
+    }
+    if (readyResult.error is WaitingTimeOutException) throw readyResult.error!;
+    throw Exception(
+        'The factory function of type $T of your registration in GetIt threw an error while waiting for them to finish: \n'
+        '${readyResult.error}\n Enable "break on uncaught exceptions" in your debugger to find out more.');
   }
 
   bool _scopeWasPushed = false;

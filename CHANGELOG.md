@@ -1,3 +1,5 @@
+## 1.1.0 - 08.11.2023
+* https://github.com/fluttercommunity/get_it/issues/345 `allReady()` will now throw a correct error if an exception is thrown in one of the factory functions that `allReady()` checks
 ## 1.0.6 - 31.10.2023 
 * Typo fixes by PRs from @mym0404 @elitree @florentmx 
 ## 1.0.5 

@@ -133,8 +133,9 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
         });
     bool? allReadyResult;
     if (testAllReady) {
-      allReadyResult =
-          allReady(onReady: (context) => allReadyHandlerResult = 'Ready');
+      allReadyResult = allReady(
+          onReady: (context) => allReadyHandlerResult = 'Ready',
+          timeout: const Duration(milliseconds: 10));
     }
     if (testAllReadyHandler) {
       allReadyHandler((context) {
@@ -753,12 +754,12 @@ void main() {
   testWidgets('allReady async object that is not finished at the start',
       (tester) async {
     GetIt.I.registerSingletonAsync(
-        () => Future.delayed(const Duration(milliseconds: 10), () => Model()),
+        () => Future.delayed(const Duration(milliseconds: 20), () => Model()),
         instanceName: 'asyncObject');
     await tester.pumpWidget(TestStateLessWidget(
       testAllReady: true,
     ));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     var allReadyResult =
         tester.widget<Text>(find.byKey(const Key('allReadyResult'))).data;

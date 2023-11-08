@@ -420,6 +420,8 @@ void registerFutureHandler<T extends Object, R>({
 /// You can force a timeout Exception if [allReady] hasn't
 /// returned `true` within [timeout].
 /// It will trigger a rebuild if this state changes
+/// If no [onError] is passed in it will throw an exception if an error occurs
+/// while waiting for the all-ready state.
 bool allReady(
     {void Function(BuildContext context)? onReady,
     void Function(BuildContext context, Object? error)? onError,
@@ -434,6 +436,8 @@ bool allReady(
 /// it does not trigger a rebuild like [allReady] does.
 /// You can force a timeout Exception if [allReady] has completed
 /// within [timeout] which will call [onError]
+/// if no [onError] is passed in it will throw an exception if an error occurs
+/// while waiting for the all-ready state.
 void allReadyHandler(void Function(BuildContext context)? onReady,
     {void Function(BuildContext context, Object? error)? onError,
     Duration? timeout}) {
@@ -452,6 +456,7 @@ void allReadyHandler(void Function(BuildContext context)? onReady,
 /// You can force a timeout Exception if [isReady] hasn't
 /// returned `true` within [timeout].
 /// It will trigger a rebuild if this state changes.
+/// if no [onError] is passed in it will throw an exception if an error occurs
 bool isReady<T extends Object>(
     {void Function(BuildContext context)? onReady,
     void Function(BuildContext context, Object? error)? onError,
