@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
 
     final bool isRunning =
         watch(di<WeatherManager>().updateWeatherCommand.isExecuting).value;
-    final updateButtonEnbaled =
+    final updateButtonEnabled =
         watchValue((WeatherManager x) => x.updateWeatherCommand.canExecute);
     final switchValue =
         watchValue((WeatherManager x) => x.setExecutionStateCommand);
@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                     style: ElevatedButton.styleFrom(
                         foregroundColor: Color.fromARGB(255, 255, 255, 255),
                         backgroundColor: Color.fromARGB(255, 33, 150, 243)),
-                    onPressed: updateButtonEnbaled
+                    onPressed: updateButtonEnabled
                         ? di<WeatherManager>().updateWeatherCommand.call
                         : null,
                   ),
