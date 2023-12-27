@@ -1,3 +1,5 @@
+## 1.2.0 - 27.12.2023
+* thanks to the PR from @smjxpro https://github.com/escamoteur/watch_it/pull/22 you now can register handlers for pure Listenable/ChangeNotifiers too
 ## 1.1.0 - 08.11.2023
 * https://github.com/fluttercommunity/get_it/issues/345 `allReady()` will now throw a correct error if an exception is thrown in one of the factory functions that `allReady()` checks
 ## 1.0.6 - 31.10.2023 
