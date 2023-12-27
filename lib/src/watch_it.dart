@@ -315,7 +315,7 @@ void registerHandler<T extends Object, R>({
 
 /// [registerChangeNotifierHandler] registers a [handler] function for a `ChangeNotifier`
 /// exactly once on the first build
-/// and unregister it when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// If you set [executeImmediately] to `true` the handler will be called immediately
 /// with the current value of the `ChangeNotifier` and not on the first change notification.
 /// All handler functions get passed in a [cancel] function that allows to kill the registration
@@ -351,7 +351,7 @@ void registerChangeNotifierHandler<T extends ChangeNotifier>({
 
 /// [registerStreamHandler] registers a [handler] function for a `Stream` exactly
 /// once on the first build
-/// and unregister it when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
 /// If you pass [initialValue] your passed handler will be executed immediately
@@ -398,7 +398,7 @@ void registerStreamHandler<T extends Object, R>({
 
 /// [registerFutureHandler] registers a [handler] function for a `Future` exactly
 /// once on the first build
-/// and unregister it when the widget is destroyed.
+/// and unregisters it when the widget is destroyed.
 /// This handler will only be called once when the `Future` completes.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.

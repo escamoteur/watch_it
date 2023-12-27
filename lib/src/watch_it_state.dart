@@ -95,36 +95,6 @@ class _WatchItState {
     currentWatchIndex = null;
   }
 
-  void watchListenableOld<T extends Listenable>(
-      {required T target, String? instanceName}) {
-    var watch = _getWatch();
-
-    if (watch != null) {
-      if (target != watch.observedObject) {
-        /// target changed from the the last time
-        /// so we have to unregister out handler and subscribe anew
-        watch.dispose();
-      }
-    } else {
-      watch = _WatchEntry(
-        observedObject: target,
-        dispose: (x) => x.observedObject!.removeListener(
-          x.notificationHandler!,
-        ),
-      );
-      _appendWatch(watch);
-    }
-
-    // ignore: prefer_function_declarations_over_variables
-    final handler = () {
-      _element?.markNeedsBuild();
-    };
-    watch.notificationHandler = handler;
-    watch.observedObject = target;
-
-    target.addListener(handler);
-  }
-
   /// [handler] and [executeImmediately] are used by [registerHandler]
   void watchListenable<R>({
     required Listenable target,
