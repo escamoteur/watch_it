@@ -49,7 +49,7 @@ class _WatchItState {
   void init(Element element) {
     _element = element;
 
-    /// prepare infrastucture to observe scope changes
+    /// prepare infrastructure to observe scope changes
     if (onScopeChanged == null) {
       onScopeChanged ??=
           CustomValueNotifier(null, mode: CustomNotifierMode.manual);
@@ -83,8 +83,8 @@ class _WatchItState {
   /// We don't allow multiple watches on the same object but we allow multiple handler
   /// that can be registered to the same observable object
   void _appendWatch<V>(_WatchEntry entry,
-      {bool allowMultipleSubcribers = false}) {
-    if (!entry.isHandlerWatch && !allowMultipleSubcribers) {
+      {bool allowMultipleSubscribers = false}) {
+    if (!entry.isHandlerWatch && !allowMultipleSubscribers) {
       for (final watch in _watchList) {
         if (watch.watchesTheSameAndNotHandler(entry)) {
           throw ArgumentError('This Object is already watched by watch_it');
@@ -95,7 +95,7 @@ class _WatchItState {
     currentWatchIndex = null;
   }
 
-  void watchListenableold<T extends Listenable>(
+  void watchListenableOld<T extends Listenable>(
       {required T target, String? instanceName}) {
     var watch = _getWatch();
 
@@ -128,7 +128,7 @@ class _WatchItState {
   /// [handler] and [executeImmediately] are used by [registerHandler]
   void watchListenable<R>({
     required Listenable target,
-    void Function(BuildContext contex, R newValue, void Function() dispose)?
+    void Function(BuildContext context, R newValue, void Function() dispose)?
         handler,
     bool executeImmediately = false,
   }) {
@@ -198,7 +198,7 @@ class _WatchItState {
 
     if (watch != null) {
       if (listenable != watch.observedObject) {
-        /// the targetobject has changed probably by passing another instance
+        /// the target object has changed probably by passing another instance
         /// so we have to unregister our handler and subscribe anew
         watch.dispose();
       }
@@ -209,8 +209,8 @@ class _WatchItState {
           lastValue: only(listenable),
           dispose: (x) =>
               x.observedObject!.removeListener(x.notificationHandler!));
-      _appendWatch(watch, allowMultipleSubcribers: true);
-      // we have to set `allowMultipleSubcribers=true` because we can't differentiate
+      _appendWatch(watch, allowMultipleSubscribers: true);
+      // we have to set `allowMultipleSubscribers=true` because we can't differentiate
       // one selector function from another.
     }
 
@@ -249,7 +249,7 @@ class _WatchItState {
     if (watch != null) {
       if (stream == watch.observedObject) {
         /// Only if this isn't used to register a handler
-        ///  still the same stream so we can directly return lastvalue
+        ///  still the same stream so we can directly return last value
         if (handler == null) {
           assert(watch.lastValue != null && !watch.lastValue!.hasError);
           return AsyncSnapshot<R>.withData(
@@ -338,7 +338,7 @@ class _WatchItState {
 
   void registerHandler<T extends Object, R>(
     Listenable target,
-    void Function(BuildContext contex, R newValue, void Function() dispose)
+    void Function(BuildContext context, R newValue, void Function() dispose)
         handler, {
     bool executeImmediately = false,
     String? instanceName,
@@ -407,7 +407,7 @@ class _WatchItState {
     R? initialValue;
     if (watch != null) {
       if (future == watch.observedObject || futureProvider != null) {
-        ///  still the same Future so we can directly return lastvalue
+        ///  still the same Future so we can directly return last value
         /// in case that we got a futureProvider we always keep the first
         /// returned Future
         /// and call the Handler again as the state hasn't changed
@@ -432,7 +432,7 @@ class _WatchItState {
           observedObject: future,
           isHandlerWatch: handler != null,
           dispose: (x) => x.activeCallbackIdentity = null);
-      _appendWatch(watch, allowMultipleSubcribers: allowMultipleSubscribers);
+      _appendWatch(watch, allowMultipleSubscribers: allowMultipleSubscribers);
     }
     //if no handler was passed we expect that this is a normal watchFuture
     handler ??= (context, x, cancel) => (context as Element).markNeedsBuild();
@@ -578,7 +578,7 @@ class _WatchItState {
     return result;
   }
 
-  void clearRegistratons() {
+  void clearRegistrations() {
     // print('clearRegistration');
     for (var x in _watchList) {
       x.dispose();
@@ -589,7 +589,7 @@ class _WatchItState {
 
   void dispose() {
     // print('dispose');
-    clearRegistratons();
+    clearRegistrations();
     if (_scopeWasPushed) {
       GetIt.I.dropScope(_scopeName!);
     }

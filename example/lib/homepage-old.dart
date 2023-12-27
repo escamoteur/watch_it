@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                title: const Text('An error has occured!'),
+                title: const Text('An error has occurred!'),
                 content: Text(error.toString()),
               ));
     });
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                         .updateWeatherCommand
                         .canExecute,
                     builder: (BuildContext context, bool canExecute, _) {
-                      // Depending on the value of canEcecute we set or clear the Handler
+                      // Depending on the value of canExecute we set or clear the Handler
                       final handler = canExecute
                           ? GetIt.I<WeatherManager>().updateWeatherCommand
                           : null;

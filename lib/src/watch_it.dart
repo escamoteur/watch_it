@@ -72,7 +72,7 @@ final di = GetIt.I;
 
 /// The functions in detail:
 
-/// [watch] observes any Listenables and triggers a rebuild whenever it notifies
+/// [watch] observes any Listenable and triggers a rebuild whenever it notifies
 /// a change. That listenable could be passed in as a parameter or be accessed via
 /// get_it. Like `final userName = watch(di<UserManager>()).userName;` if UserManager is
 /// a Listenable (eg. ChangeNotifier).
@@ -268,11 +268,11 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
 
 /// [registerHandler] registers a [handler] function for a `ValueListenable`
 /// exactly once on the first build
-/// and unregisters it when the widget is destroyed.
+/// and unregister it when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
 /// If you set [executeImmediately] to `true` the handler will be called immediately
-/// with the current value of the `ValueListenable` and not on the first change notificaion.
+/// with the current value of the `ValueListenable` and not on the first change notification.
 /// All handler functions get passed in a [cancel] function that allows to kill the registration
 /// from inside the handler.
 /// If you want to register a handler to a Listenable that is not registered in get_it you can
@@ -313,9 +313,45 @@ void registerHandler<T extends Object, R>({
       instanceName: instanceName, executeImmediately: executeImmediately);
 }
 
+/// [registerChangeNotifierHandler] registers a [handler] function for a `ChangeNotifier`
+/// exactly once on the first build
+/// and unregister it when the widget is destroyed.
+/// If you set [executeImmediately] to `true` the handler will be called immediately
+/// with the current value of the `ChangeNotifier` and not on the first change notification.
+/// All handler functions get passed in a [cancel] function that allows to kill the registration
+/// from inside the handler.
+/// If you want to register a handler to a ChangeNotifier that is not registered in get_it you can
+/// pass it as [target].
+/// [instanceName] is the optional name of the instance if you registered it
+/// with a name in get_it.
+///
+/// [getIt] is the optional instance of get_it to use if you don't want to use the
+/// default one. 99% of the time you won't need this.
+void registerChangeNotifierHandler<T extends ChangeNotifier>({
+  required void Function(
+          BuildContext context, T newValue, void Function() cancel)
+      handler,
+  T? target,
+  bool executeImmediately = false,
+  String? instanceName,
+  GetIt? getIt,
+}) {
+  assert(_activeWatchItState != null,
+      'registerHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
+  Listenable? observedObject;
+
+  final getItInstance = getIt ?? di;
+  final parentObject = target ?? getItInstance<T>(instanceName: instanceName);
+
+  observedObject = parentObject;
+
+  _activeWatchItState!.registerHandler<T, T>(observedObject, handler,
+      instanceName: instanceName, executeImmediately: executeImmediately);
+}
+
 /// [registerStreamHandler] registers a [handler] function for a `Stream` exactly
 /// once on the first build
-/// and unregisters it when the widget is destroyed.
+/// and unregister it when the widget is destroyed.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
 /// If you pass [initialValue] your passed handler will be executed immediately
@@ -362,7 +398,7 @@ void registerStreamHandler<T extends Object, R>({
 
 /// [registerFutureHandler] registers a [handler] function for a `Future` exactly
 /// once on the first build
-/// and unregisters it when the widget is destroyed.
+/// and unregister it when the widget is destroyed.
 /// This handler will only be called once when the `Future` completes.
 /// [select] allows you to register the handler to a member of the of the Object
 /// stored in GetIt.
@@ -486,7 +522,7 @@ void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
   _activeWatchItState!.pushScope(init: init, dispose: dispose);
 }
 
-/// Will triger a rebuild of the Widget if any new GetIt-Scope is pushed or popped.
+/// Will trigger a rebuild of the Widget if any new GetIt-Scope is pushed or popped.
 /// This function will return `true` if the change was a push otherwise `false`.
 /// If no change has happened then the return value will be null.
 bool? rebuildOnScopeChanges() {

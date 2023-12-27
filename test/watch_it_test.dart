@@ -53,7 +53,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool watchTwice;
   final bool watchListenableInGetIt;
   final bool watchOnlyTwice;
-  final bool watchXtwice;
+  final bool watchXTwice;
   final bool watchStreamTwice;
   final bool watchFutureTwice;
   final bool testIsReady;
@@ -68,7 +68,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       this.watchTwice = false,
       this.watchListenableInGetIt = false,
       this.watchOnlyTwice = false,
-      this.watchXtwice = false,
+      this.watchXTwice = false,
       this.watchStreamTwice = false,
       this.watchFutureTwice = false,
       this.testIsReady = false,
@@ -156,7 +156,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     if (watchOnlyTwice) {
       final country = watchPropertyValue((Model x) => x.country);
     }
-    if (watchXtwice) {
+    if (watchXTwice) {
       final name = watchValue((Model x) => x.name!);
     }
     if (watchStreamTwice) {
@@ -218,7 +218,7 @@ void main() {
         country: 'country',
         country2: 'country',
 
-        /// check if watchonly can differentiate between the two countiy fields
+        /// check if watchOnly can differentiate between the two country fields
         name: ValueNotifier('name'),
         nestedModel: Model(country: 'nestedCountry'));
     GetIt.I.registerSingleton<Model>(theModel);
@@ -272,7 +272,7 @@ void main() {
         tester.widget<Text>(find.byKey(const Key('wasScopePushed'))).data;
     expect(scopeResult, 'true');
 
-    /// triger a rebuild without changing any scopes
+    /// trigger a rebuild without changing any scopes
     valNotifier.value = '42';
 
     await tester.pump();
@@ -300,9 +300,9 @@ void main() {
     expect(tester.takeException(), isA<ArgumentError>());
   });
 
-  testWidgets('watchXtwice', (tester) async {
+  testWidgets('watchXTwice', (tester) async {
     await tester.pumpWidget(TestStateLessWidget(
-      watchXtwice: true,
+      watchXTwice: true,
     ));
     await tester.pump();
 
@@ -322,7 +322,7 @@ void main() {
 
   // testWidgets('watchXOnlyTwice', (tester) async {
   //   await tester.pumpWidget(TestStateLessWidget(
-  //     watchXonlytwice: true,
+  //     watchXOnlyTwice: true,
   //   ));
   //   await tester.pump();
 

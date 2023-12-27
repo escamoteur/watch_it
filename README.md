@@ -128,8 +128,9 @@ To run an action when data changes you can use the `register*Handler` methods:
 | `.registerHandler`  | Add an event handler for a `ValueListenable`  |
 | `.registerStreamHandler`  | Add an event handler for a `Stream`  |
 | `.registerFutureHandler`  | Add an event handler for a `Future`  |
+| `.registerChangeNotifierHandler`  | Add an event handler for a `ChangeNotifier`  |
 
-All these `register` methods have an optional `select` delegate parameter that can be used to watch a specific field of an object in GetIt. The second parameter is the action which will be triggered when that field changes:
+The `registerHandler`, `registerStreamHandler` and `registerFutureHandler` methods have an optional `select` delegate parameter that can be used to watch a specific field of an object in GetIt. The second parameter is the action which will be triggered when that field changes:
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -143,6 +144,41 @@ class MyWidget extends StatelessWidget with WatchItMixin {
 ```
 
 In the example above you see that the handler function receives the value that is returned from the select delegate (`(Model x) => x.name`), as well as a `cancel` function that the handler can call to cancel registration at any time.
+
+In case of the `registerChangeNotifierHandler` the handler function receives the `ChangeNotifier` object itself as well as a `cancel` function that the handler can call to cancel registration at any time.
+
+
+```dart
+
+class Counter extends ChangeNotifier {
+  int value = 0;
+  void increment() {
+    value++;
+    notifyListeners();
+  }
+}
+
+di.registerSingleton<Counter>(Counter());
+
+class MyWidget extends StatelessWidget with WatchItMixin {
+  @override
+  Widget build(BuildContext context) {
+    registerChangeNotifierHandler(
+        handler: (context, Counter value, cancel) {
+          if (value.value == 3) {
+            SnackBar snackbar = SnackBar(
+              content: Text('Value is 3'),
+            );
+
+            Scaffold.of(context).showSnackBar(snackbar);
+          }
+        }
+    );
+    ...
+  }
+}
+
+```
 
 As with `watch` calls, all `registerHandler` calls are cleaned up when the Widget is destroyed. If you want to register a handler for a local variable all the functions offer a `target` parameter.
 
@@ -158,7 +194,7 @@ If you want to know more about the reasons for this rule check out [Lifting the 
 
 # The watch functions in detail:
 
-## Watching `Listenables / ChangeNotifier`
+## Watching `Listenable / ChangeNotifier`
 `watch` observes any `Listenable` that you pass as parameter and triggers a rebuild whenever it notifies a change. 
 ```dart
 T watch<T extends Listenable>(T target);
@@ -194,7 +230,7 @@ Widget build(BuildContext context) {
 ```
 
 
-## Watching `Listenables` inside GetIt
+## Watching `Listenable` inside GetIt
 
 `watchIt` observes any Listenable registered with the type `T` in get_it and triggers a rebuild whenever it notifies a change. It's basically a shortcut for `watch(di<T>())`.
 `instanceName` is the optional name of the instance if you registered it
@@ -243,7 +279,7 @@ final userManager = UserManager();
 final userName = watchPropertyValue((m) => m.userName, target: userManger);
 ```
 
-## Watching `ValueListenables / ValueNotifiers
+## Watching `ValueListenable / ValueNotifier
 ```dart
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
@@ -284,7 +320,7 @@ default one. 99% of the time you won't need this.
 ### Watching a local ValueListenable/ValueNotifier
 You might wonder why `watchValue` has no `target` parameter. The reason is that Dart doesn't support positional optional parameters in combination with named optional parameters. This would require that you always would have to add a parameter name to the select function when using it in the most common way to watch a `ValueListenable` property of an object inside GetIt.
 As there is already another option to watch local ValueListenable by using `watch` I decided to drop the `target` property from `watchValue`.
-As all `ValueListenable` are also `Listenables` we can watch them with `watch()`:
+As all `ValueListenable` are also `Listenable` we can watch them with `watch()`:
 
 ```dart
 final counter = ValueNotifier<int>();
