@@ -10,7 +10,7 @@ A simple state management solution powered by get_it.
 
 This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
 
-Supported data types that can be watched are `Listenable / ChangeNotifier`, `ValueListenable / ValueNotifier`, `Stream` and `Future`. On top off that there are several other powerful function to use in `StatelessWidgets` that normally would require a `StatefulWidget` 
+Supported data types that can be watched are `Listenable / ChangeNotifier`, `ValueListenable / ValueNotifier`, `Stream` and `Future`. On top of that there are several other powerful functions to use in `StatelessWidgets` that normally would require a `StatefulWidget`.
 
 `ChangeNotifier` based example:
 ```dart
