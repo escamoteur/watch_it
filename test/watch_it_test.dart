@@ -62,6 +62,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool watchListenableWithWatchPropertyValue;
   final bool testNullValueNotifier;
   final ValueListenable<int>? localTarget;
+  final bool callAllReadyHandlerOnlyOnce;
   TestStateLessWidget(
       {Key? key,
       this.localTarget,
@@ -75,7 +76,8 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       this.testAllReady = false,
       this.watchListenableWithWatchPropertyValue = false,
       this.testNullValueNotifier = false,
-      this.testAllReadyHandler = false})
+      this.testAllReadyHandler = false,
+      this.callAllReadyHandlerOnlyOnce = false})
       : super(key: key);
 
   @override
@@ -141,7 +143,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       allReadyHandler((context) {
         allReadyHandlerCount++;
         allReadyHandlerResult2 = 'Ready';
-      });
+      }, callHandlerOnlyOnce: callAllReadyHandlerOnlyOnce);
     }
     bool? isReadyResult;
 
@@ -779,8 +781,32 @@ void main() {
     GetIt.I.registerSingletonAsync(
         () => Future.delayed(const Duration(milliseconds: 10), () => Model()),
         instanceName: 'asyncObject');
+    var testStateLessWidget = TestStateLessWidget(
+      testAllReadyHandler: true,
+    );
+    await tester.pumpWidget(testStateLessWidget);
+    await tester.pump();
+
+    expect(allReadyHandlerResult2, null);
+
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(allReadyHandlerResult2, 'Ready');
+    expect(allReadyHandlerCount, 1);
+    expect(buildCount, 1);
+
+    valNotifier.value = '000'; // should trigger a rebuild
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(allReadyHandlerCount, 2);
+    expect(buildCount, 2);
+  });
+  testWidgets('allReadyHandler test: callHandlerOnlyOnce == true',
+      (tester) async {
+    GetIt.I.registerSingletonAsync(
+        () => Future.delayed(const Duration(milliseconds: 10), () => Model()),
+        instanceName: 'asyncObject');
     await tester.pumpWidget(TestStateLessWidget(
       testAllReadyHandler: true,
+      callAllReadyHandlerOnlyOnce: true,
     ));
     await tester.pump();
 
@@ -790,6 +816,11 @@ void main() {
     expect(allReadyHandlerResult2, 'Ready');
     expect(allReadyHandlerCount, 1);
     expect(buildCount, 1);
+
+    valNotifier.value = '000'; // should trigger a rebuild
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(allReadyHandlerCount, 1);
+    expect(buildCount, 2);
   });
   testWidgets('isReady async object that is finished', (tester) async {
     GetIt.I.registerSingletonAsync<Model>(

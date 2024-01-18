@@ -8,6 +8,7 @@ class _WatchEntry<TObservedObject, TValue> {
   TValue? lastValue;
   bool isHandlerWatch;
   TValue? Function(TObservedObject)? selector;
+  bool handlerWasCalled = false;
 
   Object? activeCallbackIdentity;
   _WatchEntry(
@@ -350,27 +351,26 @@ class _WatchItState {
   /// [futureProvider] overrides a looked up future. Used to implement [allReady]
   /// We use provider functions here so that [registerFutureHandler] ensure
   /// that they are only called once.
-  AsyncSnapshot<R?> registerFutureHandler<T extends Object, R>({
-    T? target,
-    void Function(BuildContext context, AsyncSnapshot<R?> snapshot,
-            void Function() cancel)?
-        handler,
-    required bool allowMultipleSubscribers,
-    R Function()? initialValueProvider,
-    bool preserveState = true,
-    bool executeImmediately = false,
-    Future<R> Function()? futureProvider,
-    String? instanceName,
-  }) {
+  AsyncSnapshot<R?> registerFutureHandler<T extends Object, R>(
+      {T? target,
+      void Function(BuildContext context, AsyncSnapshot<R?> snapshot,
+              void Function() cancel)?
+          handler,
+      required bool allowMultipleSubscribers,
+      R Function()? initialValueProvider,
+      bool preserveState = true,
+      bool executeImmediately = false,
+      Future<R> Function()? futureProvider,
+      String? instanceName,
+      bool callHandlerOnlyOnce = false}) {
     assert(
         futureProvider != null || target != null,
-        "target can't be null if you use ${handler != null ? 'registerFutureHandler' : 'watchFuture'} "
-        'if you want target directly pass (x)=>x');
+        "if you use ${handler != null ? 'registerFutureHandler' : 'watchFuture'} "
+        'target or futureProvider has to be provided');
     var watch = _getWatch() as _WatchEntry<Future<R>, AsyncSnapshot<R?>>?;
 
     Future<R>? future;
     if (futureProvider == null && target is Future<R>) {
-      /// so we use [select] to get our Future
       future = target;
     }
 
@@ -381,8 +381,11 @@ class _WatchItState {
         /// in case that we got a futureProvider we always keep the first
         /// returned Future
         /// and call the Handler again as the state hasn't changed
-        if (handler != null && _element != null) {
+        if (handler != null &&
+            _element != null &&
+            (!watch.handlerWasCalled || !callHandlerOnlyOnce)) {
           handler(_element!, watch.lastValue!, watch.dispose);
+          watch.handlerWasCalled = true;
         }
 
         return watch.lastValue!;
@@ -427,6 +430,7 @@ class _WatchItState {
           // only update if Future is still valid
           watch.lastValue = AsyncSnapshot.withData(ConnectionState.done, x);
           handler!(_element!, watch.lastValue!, watch.dispose);
+          watch.handlerWasCalled = true;
         }
       },
       onError: (Object error) {
@@ -441,6 +445,7 @@ class _WatchItState {
           watch.lastValue =
               AsyncSnapshot.withError(ConnectionState.done, error);
           handler!(_element!, watch.lastValue!, watch.dispose);
+          watch.handlerWasCalled = true;
         }
       },
     );
@@ -449,17 +454,18 @@ class _WatchItState {
         ConnectionState.waiting, initialValue ?? initialValueProvider?.call());
     if (executeImmediately && _element != null) {
       handler(_element!, watch.lastValue!, watch.dispose);
+      watch.handlerWasCalled = true;
     }
 
     return watch.lastValue!;
   }
 
-  bool allReady({
-    void Function(BuildContext context)? onReady,
-    void Function(BuildContext context, Object? error)? onError,
-    Duration? timeout,
-    bool shouldRebuild = true,
-  }) {
+  bool allReady(
+      {void Function(BuildContext context)? onReady,
+      void Function(BuildContext context, Object? error)? onError,
+      Duration? timeout,
+      bool shouldRebuild = true,
+      bool callHandlerOnlyOnce = false}) {
     final readyResult = registerFutureHandler<Object, bool>(
       handler: (context, x, dispose) {
         if (x.hasError) {
@@ -479,6 +485,7 @@ class _WatchItState {
       /// to a bool because if this Future completes the meaning is true.
       futureProvider: () =>
           GetIt.I.allReady(timeout: timeout).then((_) => true),
+      callHandlerOnlyOnce: callHandlerOnlyOnce,
     );
     if (readyResult.hasData) {
       return readyResult.data!;
@@ -492,11 +499,13 @@ class _WatchItState {
         '${readyResult.error}\n Enable "break on uncaught exceptions" in your debugger to find out more.');
   }
 
-  bool isReady<T extends Object>(
-      {void Function(BuildContext context)? onReady,
-      void Function(BuildContext context, Object? error)? onError,
-      Duration? timeout,
-      String? instanceName}) {
+  bool isReady<T extends Object>({
+    void Function(BuildContext context)? onReady,
+    void Function(BuildContext context, Object? error)? onError,
+    Duration? timeout,
+    String? instanceName,
+    bool callHandlerOnlyOnce = false,
+  }) {
     final readyResult = registerFutureHandler<Object, bool>(
       handler: (context, x, cancel) {
         if (x.hasError) {
@@ -516,6 +525,7 @@ class _WatchItState {
       futureProvider: () => GetIt.I
           .isReady<T>(instanceName: instanceName, timeout: timeout)
           .then((_) => true),
+      callHandlerOnlyOnce: callHandlerOnlyOnce,
     );
 
     if (readyResult.hasData) {

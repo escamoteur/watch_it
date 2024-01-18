@@ -414,6 +414,8 @@ void registerStreamHandler<T extends Object, R>({
 /// if you pass null as [select], T or [target] has to be a Future<R>.
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
+/// [callHandlerOnlyOnce] determines if the [handler] should be called only once
+/// when the future completes or every time the widget rebuilds after the completion
 ///
 /// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
@@ -425,6 +427,7 @@ void registerFutureHandler<T extends Object, R>({
       handler,
   R? initialValue,
   String? instanceName,
+  bool callHandlerOnlyOnce = false,
   GetIt? getIt,
 }) {
   assert(_activeWatchItState != null,
@@ -448,7 +451,8 @@ void registerFutureHandler<T extends Object, R>({
       handler: handler,
       initialValueProvider: () => initialValue,
       instanceName: instanceName,
-      allowMultipleSubscribers: true);
+      allowMultipleSubscribers: true,
+      callHandlerOnlyOnce: callHandlerOnlyOnce);
 }
 
 /// returns `true` if all registered async or dependent objects are ready
@@ -458,14 +462,20 @@ void registerFutureHandler<T extends Object, R>({
 /// It will trigger a rebuild if this state changes
 /// If no [onError] is passed in it will throw an exception if an error occurs
 /// while waiting for the all-ready state.
+/// [callHandlerOnlyOnce] determines if the [onReady] and [onError] handlers should
+/// be called only once or on every rebuild after the all-ready state has been reached.
 bool allReady(
     {void Function(BuildContext context)? onReady,
     void Function(BuildContext context, Object? error)? onError,
-    Duration? timeout}) {
+    Duration? timeout,
+    bool callHandlerOnlyOnce = false}) {
   assert(_activeWatchItState != null,
       'allReady can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
-  return _activeWatchItState!
-      .allReady(onReady: onReady, onError: onError, timeout: timeout);
+  return _activeWatchItState!.allReady(
+      onReady: onReady,
+      onError: onError,
+      timeout: timeout,
+      callHandlerOnlyOnce: callHandlerOnlyOnce);
 }
 
 /// registers a handler that is called when the all-ready state is reached
@@ -474,16 +484,22 @@ bool allReady(
 /// within [timeout] which will call [onError]
 /// if no [onError] is passed in it will throw an exception if an error occurs
 /// while waiting for the all-ready state.
-void allReadyHandler(void Function(BuildContext context)? onReady,
-    {void Function(BuildContext context, Object? error)? onError,
-    Duration? timeout}) {
+/// [callHandlerOnlyOnce] determines if the [onReady] and [onError] handlers should
+/// be called only once or on every rebuild after the all-ready state has been reached.
+void allReadyHandler(
+  void Function(BuildContext context)? onReady, {
+  void Function(BuildContext context, Object? error)? onError,
+  Duration? timeout,
+  bool callHandlerOnlyOnce = false,
+}) {
   assert(_activeWatchItState != null,
       'allReadyHandler can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   _activeWatchItState!.allReady(
       onReady: onReady,
       onError: onError,
       timeout: timeout,
-      shouldRebuild: false);
+      shouldRebuild: false,
+      callHandlerOnlyOnce: callHandlerOnlyOnce);
 }
 
 /// returns `true` if the registered async or dependent object defined by [T] and

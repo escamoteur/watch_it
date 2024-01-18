@@ -359,6 +359,7 @@ Please check the API docs for details.
 
 # __isReady<T>() and allReady()__
 A common use case is to toggle a loading state when side effects are in-progress. To check whether any async registration actions inside `GetIt` have completed you can use `allReady()` and `isReady<T>()`. These methods return the current state of any registered async operations and a rebuild is triggered when they change.
+If you only want the `onReady` handler to be called once set `callHandlerOnlyOnce==true`
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
