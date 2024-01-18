@@ -1,3 +1,6 @@
+## 1.3.0 - 18.01.2024
+* added `executeHandlerOnlyOnce` to `registerFutureHandler`, `allReady` and `allReadyHandler`
+* added new functions: `callOnce` and `onDispose`. See readme for details
 ## 1.2.0 - 27.12.2023
 * thanks to the PR from @smjxpro https://github.com/escamoteur/watch_it/pull/22 you now can register handlers for pure Listenable/ChangeNotifiers too
 ## 1.1.0 - 08.11.2023
