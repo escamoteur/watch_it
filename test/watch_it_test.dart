@@ -53,7 +53,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final bool watchTwice;
   final bool watchListenableInGetIt;
   final bool watchOnlyTwice;
-  final bool watchXTwice;
+  final bool watchValueTwice;
   final bool watchStreamTwice;
   final bool watchFutureTwice;
   final bool testIsReady;
@@ -69,7 +69,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       this.watchTwice = false,
       this.watchListenableInGetIt = false,
       this.watchOnlyTwice = false,
-      this.watchXTwice = false,
+      this.watchValueTwice = false,
       this.watchStreamTwice = false,
       this.watchFutureTwice = false,
       this.testIsReady = false,
@@ -82,6 +82,17 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
 
   @override
   Widget build(BuildContext context) {
+    callOnce(
+      (context) {
+        initCount++;
+      },
+      dispose: () {
+        initDiposeCount++;
+      },
+    );
+    onDispose(() {
+      disposeCount++;
+    });
     final wasScopePushed = rebuildOnScopeChanges();
     buildCount++;
     final onlyRead = di<Model>().constantValue!;
@@ -158,7 +169,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     if (watchOnlyTwice) {
       final country = watchPropertyValue((Model x) => x.country);
     }
-    if (watchXTwice) {
+    if (watchValueTwice) {
       final name = watchValue((Model x) => x.name!);
     }
     if (watchStreamTwice) {
@@ -201,6 +212,9 @@ String? allReadyHandlerResult;
 String? allReadyHandlerResult2;
 String? isReadyHandlerResult;
 int allReadyHandlerCount = 0;
+int initCount = 0;
+int initDiposeCount = 0;
+int disposeCount = 0;
 
 void main() {
   setUp(() async {
@@ -213,6 +227,10 @@ void main() {
     allReadyHandlerResult = null;
     allReadyHandlerResult2 = null;
     isReadyHandlerResult = null;
+    allReadyHandlerCount = 0;
+    initCount = 0;
+    initDiposeCount = 0;
+    disposeCount = 0;
     await GetIt.I.reset();
     valNotifier = ValueNotifier<String>('notifierVal');
     theModel = Model(
@@ -292,6 +310,31 @@ void main() {
     expect(scopeResult, 'false');
     expect(buildCount, 4);
   });
+  testWidgets('callOnce test', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget());
+    valNotifier.value = '1';
+    await tester.pump();
+    valNotifier.value = '2';
+    await tester.pump();
+
+    expect(buildCount, 3);
+    expect(initCount, 1);
+    await tester.pumpWidget(Container());
+    await tester.pump();
+    expect(initDiposeCount, 1);
+  });
+  testWidgets('onDispose test', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget());
+    valNotifier.value = '1';
+    await tester.pump();
+    valNotifier.value = '2';
+    await tester.pump();
+
+    expect(buildCount, 3);
+    await tester.pumpWidget(Container());
+    await tester.pump();
+    expect(disposeCount, 1);
+  });
 
   testWidgets('watchTwice', (tester) async {
     await tester.pumpWidget(TestStateLessWidget(
@@ -302,9 +345,9 @@ void main() {
     expect(tester.takeException(), isA<ArgumentError>());
   });
 
-  testWidgets('watchXTwice', (tester) async {
+  testWidgets('watchValueTwice', (tester) async {
     await tester.pumpWidget(TestStateLessWidget(
-      watchXTwice: true,
+      watchValueTwice: true,
     ));
     await tester.pump();
 

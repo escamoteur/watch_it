@@ -551,6 +551,23 @@ class _WatchItState {
     }
   }
 
+  bool _initWasCalled = false;
+  void Function()? _initDispose;
+
+  void callOnce(void Function(BuildContext context) init,
+      {void Function()? dispose}) {
+    _initDispose = dispose;
+    if (!_initWasCalled) {
+      init(_element!);
+      _initWasCalled = true;
+    }
+  }
+
+  void Function()? _disposeFunction;
+  void onDispose(void Function() dispose) {
+    _disposeFunction ??= dispose;
+  }
+
   bool? rebuildOnScopeChanges() {
     final result = onScopeChanged!.value;
     watchListenable(target: onScopeChanged!);
@@ -573,6 +590,8 @@ class _WatchItState {
     if (_scopeWasPushed) {
       GetIt.I.dropScope(_scopeName!);
     }
+    _initDispose?.call();
+    _disposeFunction?.call();
     _element = null; // making sure the Garbage collector can do its job
   }
 }

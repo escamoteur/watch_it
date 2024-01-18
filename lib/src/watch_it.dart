@@ -546,3 +546,20 @@ bool? rebuildOnScopeChanges() {
       'rebuildOnScopeChanges can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   return _activeWatchItState!.rebuildOnScopeChanges();
 }
+
+/// If you want to execute a function  only on the first built (even in in a StatelessWidget),
+/// you can use the `callOnce` function anywhere in your build function. It has an optional `dispose`
+/// handler which will be called when the widget is disposed.
+void callOnce(void Function(BuildContext context) init,
+    {void Function()? dispose}) {
+  assert(_activeWatchItState != null,
+      'callOnce can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
+  _activeWatchItState!.callOnce(init, dispose: dispose);
+}
+
+///To dispose anything when the widget is disposed you can use call `onDispose` anywhere in your build function.
+void onDispose(void Function() dispose) {
+  assert(_activeWatchItState != null,
+      'onDispose can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
+  _activeWatchItState!.onDispose(dispose);
+}
