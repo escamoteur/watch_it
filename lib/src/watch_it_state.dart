@@ -425,6 +425,10 @@ class _WatchItState {
           /// to protect against this we just
           return;
         }
+
+        /// here we compare the captured callbackIdentity with the one that is
+        /// currently stored in the watch. If they are different it means that
+        /// the future isn't the same anymore and we don't have to call the handler
         if (watch!.activeCallbackIdentity == callbackIdentity) {
           // print('Future completed $x');
           // only update if Future is still valid
