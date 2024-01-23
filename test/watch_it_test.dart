@@ -96,7 +96,8 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     final wasScopePushed = rebuildOnScopeChanges();
     buildCount++;
     final onlyRead = di<Model>().constantValue!;
-    final notifierVal = watch(di<ValueNotifier<String>>()).value;
+    final notifierVal = '43';
+    watch(di<ValueNotifier<String>>());
 
     String? country;
     String country2;

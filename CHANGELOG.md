@@ -1,3 +1,5 @@
+## 1.4.0 - 23.01.2024
+* thanks to the pr https://github.com/escamoteur/watch_it/pull/27 by @jefflongo `pushScope` now accepts the `isFinal` parameter that the underlying get_it function does for some time now.
 ## 1.3.0 - 18.01.2024
 * added `executeHandlerOnlyOnce` to `registerFutureHandler`, `allReady` and `allReadyHandler`
 * added new functions: `callOnce` and `onDispose`. See readme for details
