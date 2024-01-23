@@ -527,15 +527,21 @@ bool isReady<T extends Object>(
 /// objects that should only exist as long as this scope exists.
 /// Can be called inside the `build` method of a `StatelessWidget`.
 /// It ensures that it's only called once in the lifetime of a widget.
+/// [isFinal] allows only objects in [init] to be registered so that other components
+/// cannot accidentally register to this scope.
 /// When the widget is destroyed the scope also gets destroyed after [dispose]
 /// is executed. If you use this function and you have registered your objects with
 /// an async disposal function, that function won't be awaited.
 /// I would recommend doing pushing and popping from your business layer but sometimes
 /// this might come in handy.
-void pushScope({void Function(GetIt getIt)? init, void Function()? dispose}) {
+void pushScope(
+    {void Function(GetIt getIt)? init,
+    void Function()? dispose,
+    bool isFinal = false}) {
   assert(_activeWatchItState != null,
       'pushScope can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
-  _activeWatchItState!.pushScope(init: init, dispose: dispose);
+  _activeWatchItState!
+      .pushScope(init: init, dispose: dispose, isFinal: isFinal);
 }
 
 /// Will trigger a rebuild of the Widget if any new GetIt-Scope is pushed or popped.
