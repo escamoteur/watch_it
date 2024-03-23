@@ -1,3 +1,5 @@
+## 1.4.1 - 23.03.2024
+* fix for https://github.com/escamoteur/watch_it/issues/28
 ## 1.4.0 - 23.01.2024
 * thanks to the pr https://github.com/escamoteur/watch_it/pull/27 by @jefflongo `pushScope` now accepts the `isFinal` parameter that the underlying get_it function does for some time now.
 ## 1.3.0 - 18.01.2024

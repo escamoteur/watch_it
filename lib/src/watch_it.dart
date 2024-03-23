@@ -115,8 +115,11 @@ T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 /// with a name in get_it.
 /// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
-R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
-    {String? instanceName, GetIt? getIt}) {
+R watchValue<T extends Object, R>(
+  ValueListenable<R> Function(T) selectProperty, {
+  String? instanceName,
+  GetIt? getIt,
+}) {
   assert(_activeWatchItState != null,
       'watchValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   ValueListenable<R> observedObject;
@@ -144,8 +147,12 @@ R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
 ///
 /// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
-R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
-    {T? target, String? instanceName, GetIt? getIt}) {
+R watchPropertyValue<T extends Listenable, R>(
+  R Function(T) selectProperty, {
+  T? target,
+  String? instanceName,
+  GetIt? getIt,
+}) {
   assert(_activeWatchItState != null,
       'watchPropertyValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   late final T observedObject;
@@ -199,9 +206,9 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
   if (select != null) {
     observedObject = select(parentObject);
   } else {
-    if (T is Stream<R>) {
+    try {
       observedObject = (parentObject) as Stream<R>;
-    } else {
+    } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Stream');
     }
@@ -251,9 +258,9 @@ AsyncSnapshot<R?> watchFuture<T extends Object, R>(
   if (select != null) {
     observedObject = select(parentObject);
   } else {
-    if (T is Future<R>) {
+    try {
       observedObject = (observedObject) as Future<R>;
-    } else {
+    } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Future');
     }
@@ -302,9 +309,9 @@ void registerHandler<T extends Object, R>({
   if (select != null) {
     observedObject = select(parentObject);
   } else {
-    if (T is Listenable) {
+    try {
       observedObject = (parentObject) as Listenable;
-    } else {
+    } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Listenable');
     }
@@ -385,9 +392,9 @@ void registerStreamHandler<T extends Object, R>({
   if (select != null) {
     observedObject = select(parentObject);
   } else {
-    if (T is Stream<R>) {
+    try {
       observedObject = (parentObject) as Stream<R>;
-    } else {
+    } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Stream');
     }
@@ -439,9 +446,9 @@ void registerFutureHandler<T extends Object, R>({
   if (select != null) {
     observedObject = select(parentObject);
   } else {
-    if (T is Future<R>) {
+    try {
       observedObject = (parentObject) as Future<R>;
-    } else {
+    } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Future');
     }
