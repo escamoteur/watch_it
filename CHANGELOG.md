@@ -1,3 +1,4 @@
+## 1.4.2 - 14.05.2024 fix for https://github.com/escamoteur/watch_it/issues/29
 ## 1.4.1 - 23.03.2024
 * fix for https://github.com/escamoteur/watch_it/issues/28
 ## 1.4.0 - 23.01.2024
