@@ -230,10 +230,10 @@ class _WatchItState {
         }
       } else {
         /// select returned a different value than the last time
-        /// so we have to unregister out handler and subscribe anew
+        /// so we have to unregister our handler and subscribe anew
         watch.dispose();
-        initialValue = preserveState
-            ? watch.lastValue!.data ?? initialValue
+        initialValue = preserveState && watch.lastValue!.hasData
+            ? watch.lastValue!.data
             : initialValue;
       }
     } else {
@@ -394,8 +394,8 @@ class _WatchItState {
         /// so we have to unregister out handler and subscribe anew
         watch.dispose();
         initialValue = preserveState && watch.lastValue!.hasData
-            ? watch.lastValue!.data ?? initialValueProvider?.call()
-            : initialValueProvider?.call as R?;
+            ? watch.lastValue!.data
+            : initialValueProvider?.call();
       }
     } else {
       /// In case futureProvider != null
@@ -476,9 +476,9 @@ class _WatchItState {
           onError?.call(context, x.error);
         } else {
           onReady?.call(context);
-          if (shouldRebuild) {
-            (context as Element).markNeedsBuild();
-          }
+        }
+        if (shouldRebuild) {
+          (context as Element).markNeedsBuild();
         }
         dispose();
       },
