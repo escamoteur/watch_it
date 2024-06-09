@@ -172,6 +172,9 @@ class _WatchItState {
         /// the target object has changed probably by passing another instance
         /// so we have to unregister our handler and subscribe anew
         watch.dispose();
+      } else {
+        // if the listenable is the same we can directly return
+        return;
       }
     } else {
       watch = _WatchEntry<T, R>(
