@@ -45,8 +45,8 @@ class Model extends ChangeNotifier {
         _country2 = country2;
 
   Stream<String> get stream => streamController.stream;
-  final Completer<String> completer = Completer<String>();
-  Future<String> get future => completer.future;
+  final Completer<String?> completer = Completer<String?>();
+  Future<String?> get future => completer.future;
 }
 
 class TestStateLessWidget extends StatelessWidget with WatchItMixin {
@@ -96,8 +96,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     final wasScopePushed = rebuildOnScopeChanges();
     buildCount++;
     final onlyRead = di<Model>().constantValue!;
-    final notifierVal = '43';
-    watch(di<ValueNotifier<String>>());
+    final notifierVal = watch(di<ValueNotifier<String>>()).value;
 
     String? country;
     String country2;
@@ -129,7 +128,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
             cancel();
           }
         });
-    registerFutureHandler<Model, String>(
+    registerFutureHandler<Model, String?>(
         select: (Model x) => x.future,
         handler: (context, x, cancel) {
           futureHandlerResult = x.data;
@@ -147,9 +146,8 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
         });
     bool? allReadyResult;
     if (testAllReady) {
-      allReadyResult = allReady(
-          onReady: (context) => allReadyHandlerResult = 'Ready',
-          timeout: const Duration(milliseconds: 10));
+      allReadyResult =
+          allReady(onReady: (context) => allReadyHandlerResult = 'Ready');
     }
     if (testAllReadyHandler) {
       allReadyHandler((context) {
@@ -800,12 +798,12 @@ void main() {
   testWidgets('allReady async object that is not finished at the start',
       (tester) async {
     GetIt.I.registerSingletonAsync(
-        () => Future.delayed(const Duration(milliseconds: 20), () => Model()),
+        () => Future.delayed(const Duration(milliseconds: 40), () => Model()),
         instanceName: 'asyncObject');
     await tester.pumpWidget(TestStateLessWidget(
       testAllReady: true,
     ));
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 20));
 
     var allReadyResult =
         tester.widget<Text>(find.byKey(const Key('allReadyResult'))).data;
