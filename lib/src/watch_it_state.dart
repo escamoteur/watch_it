@@ -549,13 +549,14 @@ class _WatchItState {
 
   bool _scopeWasPushed = false;
   String? _scopeName;
+  static int _autoScopeCounter = 0;
 
   void pushScope(
       {void Function(GetIt getIt)? init,
       void Function()? dispose,
       bool isFinal = false}) {
     if (!_scopeWasPushed) {
-      _scopeName = 'AutoScope: ${DateTime.now().microsecondsSinceEpoch}';
+      _scopeName = 'AutoScope: ${_autoScopeCounter++}';
       GetIt.I.pushNewScope(
           dispose: dispose,
           init: init,
