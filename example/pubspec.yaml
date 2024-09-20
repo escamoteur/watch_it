@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^0.13.0
-  flutter_command: ^2.0.0 
+  flutter_command: ^6.0.0
   watch_it:
     path: ../
   functional_listener: any

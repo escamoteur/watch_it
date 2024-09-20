@@ -84,7 +84,7 @@ There are various `watch` methods, for common types of data sources, including `
 | `watchFuture` | observes a Future and triggers a rebuild whenever the Future completes
 
 To be able to use the functions you have either to derive your widget from
-`WatchingWidget` or `WatchingStatefulWidget` or use the `WatchItMixin` or `WatchingStatefulWidgetMixin` in your widget class and call the watch functions inside the their build functions.
+`WatchingWidget` or `WatchingStatefulWidget` or use the `WatchItMixin` or `WatchItStatefulWidgetMixin` in your widget class and call the watch functions inside the their build functions.
 
 Just call `watch*` to listen to the data type you need, and `WatchIt` will take care of cancelling bindings and subscriptions when the widget is destroyed.
 

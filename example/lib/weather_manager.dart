@@ -13,17 +13,18 @@ class WeatherManager {
 
   WeatherManager() {
     // Command expects a bool value when executed and sets it as its own value
-    setExecutionStateCommand = Command.createSync<bool, bool>((b) => b, true);
+    setExecutionStateCommand =
+        Command.createSync<bool, bool>((b) => b, initialValue: true);
 
     // We pass the result of switchChangedCommand as restrictions to the upDateWeatherCommand
     updateWeatherCommand = Command.createAsync<String?, List<WeatherEntry>>(
       update, // Wrapped function
-      [], // Initial value
+      initialValue: [], // Initial value
       restriction: setExecutionStateCommand,
     );
 
     // Will be called on every change of the search-field
-    textChangedCommand = Command.createSync((s) => s, '');
+    textChangedCommand = Command.createSync((s) => s, initialValue: '');
 
     // handler for results
     // make sure we start processing only if the user make a short pause typing

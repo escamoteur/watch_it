@@ -10,10 +10,10 @@ environment:
   flutter: ">=3.0.0"
 
 dependencies:
-  get_it: ^7.6.7
+  get_it: ^8.0.0
   flutter:
     sdk: flutter
-  functional_listener: ^2.3.1
+  functional_listener: ^3.0.0
 
 dev_dependencies:
   flutter_test:
