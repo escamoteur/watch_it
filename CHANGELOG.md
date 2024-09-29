@@ -1,3 +1,4 @@
+## 1.5.1 - updated to latest version of functional_listener
 ## 1.5.0 - updated to latest versions of get_it and flutter_command
 ## 1.4.2 - 14.05.2024 fix for https://github.com/escamoteur/watch_it/issues/29
 ## 1.4.1 - 23.03.2024
