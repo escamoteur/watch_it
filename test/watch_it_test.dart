@@ -8,11 +8,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:watch_it/watch_it.dart';
 
 class TestDisposable {
-  String get value => '42';
+  TestDisposable({required this.value});
+  final String value;
   void dispose() {
     lifetimeValueDisposeCount++;
   }
+
+  Future<TestDisposable> init() async {
+    await testCompleter.future;
+    return this;
+  }
 }
+
+final testCompleter = Completer<void>();
 
 class Model extends ChangeNotifier {
   String? constantValue;
@@ -104,10 +112,17 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     buildCount++;
     final onlyRead = di<Model>().constantValue!;
     final notifierVal = watch(di<ValueNotifier<String>>());
-    final lifetimeTestValue = lifetimeValue<TestDisposable>(() {
+    final createOnceValue = createOnce<TestDisposable>(() {
       lifetimeValueCount++;
-      return TestDisposable();
+      return TestDisposable(value: '42');
     });
+    final createOnceAsyncValue = createOnceAsync<TestDisposable>(
+      () async {
+        return TestDisposable(value: '4711').init();
+      },
+      initialValue: TestDisposable(value: 'initialValue'),
+    );
+
     String? country;
     String country2;
     if (watchListenableInGetIt) {
@@ -195,7 +210,9 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
         children: [
           Text(onlyRead, key: const Key('onlyRead')),
           Text(notifierVal.value, key: const Key('notifierVal')),
-          Text(lifetimeTestValue.value, key: const Key('lifetimeValue')),
+          Text(createOnceValue.value, key: const Key('lifetimeValue')),
+          Text(createOnceAsyncValue.data!.value,
+              key: const Key('createOnceAsyncValue')),
           Text(country ?? 'null', key: const Key('country')),
           Text(country2, key: const Key('country2')),
           Text(name, key: const Key('name')),
@@ -244,6 +261,7 @@ void main() {
     initDiposeCount = 0;
     disposeCount = 0;
     lifetimeValueCount = 0;
+    lifetimeValueDisposeCount = 0;
     await GetIt.I.reset();
     valNotifier = ValueNotifier<String>('notifierVal');
     theModel = Model(
@@ -352,14 +370,35 @@ void main() {
     expect(disposeCount, 1);
   });
 
-  testWidgets('lifetimeValue test', (tester) async {
+  testWidgets('createOnce test', (tester) async {
     await tester.pumpWidget(TestStateLessWidget());
     await tester.pump();
     expect(lifetimeValueCount, 1);
     expect(lifetimeValueDisposeCount, 0);
     await tester.pumpWidget(Container());
     await tester.pump();
-    expect(lifetimeValueDisposeCount, 1);
+    expect(lifetimeValueDisposeCount, 2);
+  });
+
+  testWidgets('createOnceAsync test', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget());
+    await tester.pump();
+
+    var createOnceAsyncValue =
+        tester.widget<Text>(find.byKey(const Key('createOnceAsyncValue'))).data;
+    expect(createOnceAsyncValue, 'initialValue');
+    testCompleter.complete();
+    await tester
+        .runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+    await tester.pump();
+    await tester.pump();
+
+    createOnceAsyncValue =
+        tester.widget<Text>(find.byKey(const Key('createOnceAsyncValue'))).data;
+    expect(createOnceAsyncValue, '4711');
+    await tester.pumpWidget(Container());
+    await tester.pump();
+    expect(lifetimeValueDisposeCount, 2);
   });
 
   testWidgets('watchTwice', (tester) async {

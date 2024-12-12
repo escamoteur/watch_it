@@ -36,8 +36,11 @@ class WeatherManager {
       },
     );
 
-    updateWeatherCommand.thrownExceptions
-        .listen((ex, _) => print(ex.toString()));
+    updateWeatherCommand.errors.listen(
+      (ex, _) => print(
+        ex.toString(),
+      ),
+    );
 
     // Update data on start-up
     updateWeatherCommand.execute();

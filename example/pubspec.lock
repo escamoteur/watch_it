@@ -42,18 +42,18 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_command
-      sha256: a166f3f3d9ab09f375444b3191b9ec4658b4c1356e951aff5d602da017086ff1
+      sha256: "8c23c9f39b5521f64b4bf15b7b5693091e7757806189f356b048658952cc9e1a"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0+pre2"
+    version: "7.0.1"
   functional_listener:
     dependency: "direct main"
     description:
       name: functional_listener
-      sha256: ee8ffc29b2448981d96addf44ac9b4af2ba4ca2627979e77d3e6fe59b967ca4f
+      sha256: c096db771b4ce7ba0f886cc4a761044b11e8276a7bc24cfc812dc4b2bc6f5b16
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "4.1.0"
   get_it:
     dependency: transitive
     description:
@@ -90,18 +90,18 @@ packages:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: "0e0a020085b65b6083975e499759762399b4475f766c21668c4ecca34ea74e5a"
+      sha256: f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.11.1"
   meta:
     dependency: transitive
     description:
       name: meta
-      sha256: "7687075e408b093f36e6bbf6c91878cc0d4cd10f409506f7bc996f68220b9136"
+      sha256: bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7
       url: "https://pub.dev"
     source: hosted
-    version: "1.12.0"
+    version: "1.15.0"
   path:
     dependency: transitive
     description:
@@ -193,7 +193,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.5.1"
 sdks:
-  dart: ">=3.3.0-0 <4.0.0"
+  dart: ">=3.5.0 <4.0.0"
   flutter: ">=3.0.0"

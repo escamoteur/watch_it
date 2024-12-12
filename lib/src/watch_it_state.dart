@@ -4,7 +4,7 @@ class _WatchEntry<TObservedObject, TValue> {
   TObservedObject observedObject;
   VoidCallback? notificationHandler;
   StreamSubscription? subscription;
-  final void Function(_WatchEntry entry) _dispose;
+  final void Function(_WatchEntry entry)? _dispose;
   TValue? lastValue;
   bool isHandlerWatch;
   TValue? Function(TObservedObject)? selector;
@@ -15,13 +15,13 @@ class _WatchEntry<TObservedObject, TValue> {
       {this.notificationHandler,
       this.subscription,
       this.selector,
-      required void Function(_WatchEntry entry) dispose,
+      required void Function(_WatchEntry entry)? dispose,
       this.lastValue,
       this.isHandlerWatch = false,
       required this.observedObject})
       : _dispose = dispose;
   void dispose() {
-    _dispose(this);
+    _dispose?.call(this);
   }
 
   bool watchesTheSameAndNotHandler(_WatchEntry entry) {
@@ -354,23 +354,24 @@ class _WatchItState {
   /// [futureProvider] overrides a looked up future. Used to implement [allReady]
   /// We use provider functions here so that [registerFutureHandler] ensure
   /// that they are only called once.
-  AsyncSnapshot<R?> registerFutureHandler<T extends Object, R>(
+  AsyncSnapshot<R> registerFutureHandler<T extends Object?, R>(
       {T? target,
       void Function(BuildContext context, AsyncSnapshot<R?> snapshot,
               void Function() cancel)?
           handler,
       required bool allowMultipleSubscribers,
-      R Function()? initialValueProvider,
+      required R Function() initialValueProvider,
       bool preserveState = true,
       bool executeImmediately = false,
       Future<R> Function()? futureProvider,
       String? instanceName,
-      bool callHandlerOnlyOnce = false}) {
+      bool callHandlerOnlyOnce = false,
+      void Function(R value)? dispose}) {
     assert(
         futureProvider != null || target != null,
         "if you use ${handler != null ? 'registerFutureHandler' : 'watchFuture'} "
         'target or futureProvider has to be provided');
-    var watch = _getWatch() as _WatchEntry<Future<R>, AsyncSnapshot<R?>>?;
+    var watch = _getWatch() as _WatchEntry<Future<R>, AsyncSnapshot<R>>?;
 
     Future<R>? future;
     if (futureProvider == null && target is Future<R>) {
@@ -404,10 +405,15 @@ class _WatchItState {
       /// In case futureProvider != null
       future ??= futureProvider!();
 
-      watch = _WatchEntry<Future<R>, AsyncSnapshot<R?>>(
+      watch = _WatchEntry<Future<R>, AsyncSnapshot<R>>(
           observedObject: future,
           isHandlerWatch: handler != null,
-          dispose: (x) => x.activeCallbackIdentity = null);
+          dispose: (x) {
+            x.activeCallbackIdentity = null;
+            if (dispose != null && x.lastValue != null) {
+              dispose(x.lastValue!.data as R);
+            }
+          });
       _appendWatch(watch, allowMultipleSubscribers: allowMultipleSubscribers);
     }
     //if no handler was passed we expect that this is a normal watchFuture
@@ -457,8 +463,8 @@ class _WatchItState {
       },
     );
 
-    watch.lastValue = AsyncSnapshot<R?>.withData(
-        ConnectionState.waiting, initialValue ?? initialValueProvider?.call());
+    watch.lastValue = AsyncSnapshot<R>.withData(
+        ConnectionState.waiting, initialValue ?? initialValueProvider.call());
     if (executeImmediately && _element != null) {
       handler(_element!, watch.lastValue!, watch.dispose);
       watch.handlerWasCalled = true;
@@ -467,7 +473,10 @@ class _WatchItState {
     return watch.lastValue!;
   }
 
-  bool _testIfDisposable(Object d) {
+  bool _testIfDisposable(Object? d) {
+    if (d == null) {
+      return false;
+    }
     Object? dispose;
     try {
       dispose = (d as dynamic).dispose;
@@ -480,23 +489,57 @@ class _WatchItState {
     return false;
   }
 
-  T lifetimeValue<T extends Object>(T Function() factoryFunc) {
+  T createOnce<T>(T Function() factoryFunc, {void Function(T value)? dispose}) {
     var watch = _getWatch() as _WatchEntry<void, T>?;
 
     if (watch == null) {
       final value = factoryFunc();
-      assert(_testIfDisposable(value),
-          'The factory function of type $T returned an object that is not disposable. Please make sure that the factory function returns an instance of a class that implements the Disposable interface.');
       watch = _WatchEntry(
         lastValue: value,
         observedObject: null,
-        dispose: (x) {
-          (x.lastValue as dynamic).dispose();
-        },
+        dispose: dispose != null
+            ? (x) => dispose(x.lastValue!)
+            : (_testIfDisposable(value)
+                ? (x) {
+                    (x.lastValue as dynamic).dispose();
+                  }
+                : (_) {
+                    assert(() {
+                      // ignore: avoid_print
+                      print(
+                          'WatchIt: Info - createOnce without a dispose function');
+                      return true;
+                    }());
+                  }),
       );
       _appendWatch(watch);
     }
     return watch.lastValue!;
+  }
+
+  AsyncSnapshot<T> createOnceAsync<T>(Future<T> Function() factoryFunc,
+      {required T initialValue, void Function(T value)? dispose}) {
+    return registerFutureHandler<void, T>(
+      allowMultipleSubscribers: false,
+      initialValueProvider: () => initialValue,
+      futureProvider: factoryFunc,
+      dispose: (x) {
+        if (dispose != null) {
+          dispose(x);
+        } else {
+          if (_testIfDisposable(x)) {
+            (x as dynamic).dispose();
+          } else {
+            assert(() {
+              // ignore: avoid_print
+              print(
+                  'WatchIt: Info - createOnceAsync without a dispose function');
+              return true;
+            }());
+          }
+        }
+      },
+    );
   }
 
   bool allReady(

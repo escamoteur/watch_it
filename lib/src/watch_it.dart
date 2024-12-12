@@ -241,7 +241,7 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
 ///
 /// [getIt] is the optional instance of get_it to use if you don't want to use the
 /// default one. 99% of the time you won't need this.
-AsyncSnapshot<R?> watchFuture<T extends Object, R>(
+AsyncSnapshot<R> watchFuture<T extends Object, R>(
   Future<R> Function(T)? select, {
   T? target,
   required R initialValue,
@@ -577,14 +577,43 @@ void onDispose(void Function() dispose) {
   _activeWatchItState!.onDispose(dispose);
 }
 
-/// [lifetimeValue] creates a disposable object at the time of the first build
-/// and disposes it when the widget is disposed.
+/// [createOnce] creates an  object with the factory function [factoryFunc] at
+/// the time of the first build and disposes it when the widget is disposed if
+/// the object implements the Disposable interface.
 /// on every rebuild the same object is returned
+/// [dispose] allows you to pass a custom dispose function to dispose of the object.
+/// if provided it will override the default dispose behavior.
+///
 /// If can be used to create AnimationControllers or other objects that should
-/// be disposed when the widget is disposed.
-T lifetimeValue<T extends Object>(T Function() factoryFunc) {
-  assert(_activeWatchItState != null,
-      'lifetimeValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
+/// be live for the lifetime of the widget.
+T createOnce<T extends Object>(
+  T Function() factoryFunc, {
+  void Function(T)? dispose,
+}) {
+  assert(
+      _activeWatchItState != null,
+      'createOnce can only be called inside a build function within a WatchingWidget'
+      ' or a widget using the WatchItMixin');
 
-  return _activeWatchItState!.lifetimeValue(factoryFunc);
+  return _activeWatchItState!.createOnce(factoryFunc, dispose: dispose);
+}
+
+/// [createOnceAsync] creates an  object with the async factory function
+/// [factoryFunc] at the time of the first build and disposes it when the widget
+/// is disposed if the object implements the Disposable interface.
+/// [initialValue] is the value that will be returned until the factory function
+/// completes.
+/// When the [factoryFunc] completes the value will be updated with the new value
+/// and the widget will be rebuilt.
+/// [dispose] allows you to pass a custom dispose function to dispose of the
+/// object.
+/// if provided it will override the default dispose behavior.
+AsyncSnapshot<T> createOnceAsync<T>(Future<T> Function() factoryFunc,
+    {required T initialValue, void Function(T)? dispose}) {
+  assert(
+      _activeWatchItState != null,
+      'createOnceAsync can only be called inside a build function within a'
+      ' WatchingWidget or a widget using the WatchItMixin');
+  return _activeWatchItState!.createOnceAsync(factoryFunc,
+      initialValue: initialValue, dispose: dispose);
 }

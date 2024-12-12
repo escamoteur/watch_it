@@ -1,5 +1,4 @@
 // Create a ChangeNotifier based model
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:watch_it/watch_it.dart';
 

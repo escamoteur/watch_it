@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   void didChangeDependencies() {
     errorSubscription ??= GetIt.I<WeatherManager>()
         .updateWeatherCommand
-        .thrownExceptions
+        .errors
         .listen((error, _) {
       showDialog(
           context: context,

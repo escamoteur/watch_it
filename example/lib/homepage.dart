@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     registerHandler(
-        select: (WeatherManager x) => x.updateWeatherCommand.thrownExceptions,
+        select: (WeatherManager x) => x.updateWeatherCommand.errors,
         handler: (context, error, cancel) {
           showDialog(
               context: context,
