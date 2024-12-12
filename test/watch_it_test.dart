@@ -7,6 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:watch_it/watch_it.dart';
 
+class TestDisposable {
+  String get value => '42';
+  void dispose() {
+    lifetimeValueDisposeCount++;
+  }
+}
+
 class Model extends ChangeNotifier {
   String? constantValue;
   String? _country;
@@ -96,8 +103,11 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
     final wasScopePushed = rebuildOnScopeChanges();
     buildCount++;
     final onlyRead = di<Model>().constantValue!;
-    final notifierVal = watch(di<ValueNotifier<String>>()).value;
-
+    final notifierVal = watch(di<ValueNotifier<String>>());
+    final lifetimeTestValue = lifetimeValue<TestDisposable>(() {
+      lifetimeValueCount++;
+      return TestDisposable();
+    });
     String? country;
     String country2;
     if (watchListenableInGetIt) {
@@ -184,7 +194,8 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       child: Column(
         children: [
           Text(onlyRead, key: const Key('onlyRead')),
-          Text(notifierVal, key: const Key('notifierVal')),
+          Text(notifierVal.value, key: const Key('notifierVal')),
+          Text(lifetimeTestValue.value, key: const Key('lifetimeValue')),
           Text(country ?? 'null', key: const Key('country')),
           Text(country2, key: const Key('country2')),
           Text(name, key: const Key('name')),
@@ -214,6 +225,8 @@ int allReadyHandlerCount = 0;
 int initCount = 0;
 int initDiposeCount = 0;
 int disposeCount = 0;
+int lifetimeValueCount = 0;
+int lifetimeValueDisposeCount = 0;
 
 void main() {
   setUp(() async {
@@ -230,6 +243,7 @@ void main() {
     initCount = 0;
     initDiposeCount = 0;
     disposeCount = 0;
+    lifetimeValueCount = 0;
     await GetIt.I.reset();
     valNotifier = ValueNotifier<String>('notifierVal');
     theModel = Model(
@@ -252,6 +266,8 @@ void main() {
         tester.widget<Text>(find.byKey(const Key('onlyRead'))).data;
     final notifierVal =
         tester.widget<Text>(find.byKey(const Key('notifierVal'))).data;
+    final lifetimeValue =
+        tester.widget<Text>(find.byKey(const Key('lifetimeValue'))).data;
     final country = tester.widget<Text>(find.byKey(const Key('country'))).data;
     final country2 =
         tester.widget<Text>(find.byKey(const Key('country2'))).data;
@@ -267,6 +283,7 @@ void main() {
 
     expect(onlyRead, 'onlyRead');
     expect(notifierVal, 'notifierVal');
+    expect(lifetimeValue, '42');
     expect(country, 'country');
     expect(country2, 'country');
     expect(name, 'name');
@@ -333,6 +350,16 @@ void main() {
     await tester.pumpWidget(Container());
     await tester.pump();
     expect(disposeCount, 1);
+  });
+
+  testWidgets('lifetimeValue test', (tester) async {
+    await tester.pumpWidget(TestStateLessWidget());
+    await tester.pump();
+    expect(lifetimeValueCount, 1);
+    expect(lifetimeValueDisposeCount, 0);
+    await tester.pumpWidget(Container());
+    await tester.pump();
+    expect(lifetimeValueDisposeCount, 1);
   });
 
   testWidgets('watchTwice', (tester) async {

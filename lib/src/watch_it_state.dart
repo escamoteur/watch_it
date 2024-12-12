@@ -467,6 +467,38 @@ class _WatchItState {
     return watch.lastValue!;
   }
 
+  bool _testIfDisposable(Object d) {
+    Object? dispose;
+    try {
+      dispose = (d as dynamic).dispose;
+      if (dispose is void Function()) {
+        return true;
+      }
+    } catch (e) {
+      return false;
+    }
+    return false;
+  }
+
+  T lifetimeValue<T extends Object>(T Function() factoryFunc) {
+    var watch = _getWatch() as _WatchEntry<void, T>?;
+
+    if (watch == null) {
+      final value = factoryFunc();
+      assert(_testIfDisposable(value),
+          'The factory function of type $T returned an object that is not disposable. Please make sure that the factory function returns an instance of a class that implements the Disposable interface.');
+      watch = _WatchEntry(
+        lastValue: value,
+        observedObject: null,
+        dispose: (x) {
+          (x.lastValue as dynamic).dispose();
+        },
+      );
+      _appendWatch(watch);
+    }
+    return watch.lastValue!;
+  }
+
   bool allReady(
       {void Function(BuildContext context)? onReady,
       void Function(BuildContext context, Object? error)? onError,

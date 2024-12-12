@@ -576,3 +576,15 @@ void onDispose(void Function() dispose) {
       'onDispose can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
   _activeWatchItState!.onDispose(dispose);
 }
+
+/// [lifetimeValue] creates a disposable object at the time of the first build
+/// and disposes it when the widget is disposed.
+/// on every rebuild the same object is returned
+/// If can be used to create AnimationControllers or other objects that should
+/// be disposed when the widget is disposed.
+T lifetimeValue<T extends Object>(T Function() factoryFunc) {
+  assert(_activeWatchItState != null,
+      'lifetimeValue can only be called inside a build function within a WatchingWidget or a widget using the WatchItMixin');
+
+  return _activeWatchItState!.lifetimeValue(factoryFunc);
+}
