@@ -399,7 +399,7 @@ class _WatchItState {
         watch.dispose();
         initialValue = preserveState && watch.lastValue!.hasData
             ? watch.lastValue!.data
-            : initialValueProvider?.call();
+            : initialValueProvider.call();
       }
     } else {
       /// In case futureProvider != null
