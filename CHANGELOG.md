@@ -1,3 +1,7 @@
+## 1.6.1 - 13.12.2024
+
+* fixing linter warnings 
+
 ## 1.6.0 - 12.12.2024
 
 * Adding `createOnce` and `createOnceAsync`
