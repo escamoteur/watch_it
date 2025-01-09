@@ -259,7 +259,7 @@ AsyncSnapshot<R> watchFuture<T extends Object, R>(
     observedObject = select(parentObject);
   } else {
     try {
-      observedObject = (observedObject) as Future<R>;
+      observedObject = parentObject as Future<R>;
     } on TypeError catch (_) {
       throw ArgumentError(
           'Either the return type of the select function or the type T has to be a Future');
