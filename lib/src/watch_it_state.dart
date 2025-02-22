@@ -306,6 +306,11 @@ class _WatchItState {
       return AsyncSnapshot<R>.nothing();
     }
     assert(watch.lastValue != null && !watch.lastValue!.hasError);
+    if (watch.lastValue!.data is! R &&
+        watch.lastValue!.connectionState == ConnectionState.waiting) {
+      return AsyncSnapshot<R>.waiting();
+    }
+
     return AsyncSnapshot<R>.withData(
         watch.lastValue!.connectionState, watch.lastValue!.data as R);
   }

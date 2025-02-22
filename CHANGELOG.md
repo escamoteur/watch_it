@@ -1,3 +1,5 @@
+## 1.6.3 - 22.02.2025
+* fixing an exception in Streambuilder during loading state if you don't provide an inital value
 ## 1.6.2 - 09.01.2025
 * Fix for https://github.com/escamoteur/watch_it/issues/42
 ## 1.6.1 - 13.12.2024
