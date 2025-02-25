@@ -79,7 +79,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
   final ValueListenable<int>? localTarget;
   final bool callAllReadyHandlerOnlyOnce;
   TestStateLessWidget(
-      {Key? key,
+      {super.key,
       this.localTarget,
       this.watchTwice = false,
       this.watchListenableInGetIt = false,
@@ -92,8 +92,7 @@ class TestStateLessWidget extends StatelessWidget with WatchItMixin {
       this.watchListenableWithWatchPropertyValue = false,
       this.testNullValueNotifier = false,
       this.testAllReadyHandler = false,
-      this.callAllReadyHandlerOnlyOnce = false})
-      : super(key: key);
+      this.callAllReadyHandlerOnlyOnce = false});
 
   @override
   Widget build(BuildContext context) {

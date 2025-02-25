@@ -33,10 +33,10 @@ mixin _GetItElement on ComponentElement {
 
 class _StatelessWatchItElement<W extends StatelessWidget>
     extends StatelessElement with _GetItElement {
-  _StatelessWatchItElement(W widget) : super(widget);
+  _StatelessWatchItElement(W super.widget);
 }
 
 class _StatefulWatchItElement<W extends StatefulWidget> extends StatefulElement
     with _GetItElement {
-  _StatefulWatchItElement(W widget) : super(widget);
+  _StatefulWatchItElement(W super.widget);
 }

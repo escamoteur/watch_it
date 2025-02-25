@@ -1,7 +1,7 @@
 part of 'watch_it.dart';
 
 abstract class WatchingWidget extends StatelessWidget {
-  const WatchingWidget({Key? key}) : super(key: key);
+  const WatchingWidget({super.key});
 
   @override
   StatelessElement createElement() =>
@@ -9,7 +9,7 @@ abstract class WatchingWidget extends StatelessWidget {
 }
 
 abstract class WatchingStatefulWidget extends StatefulWidget {
-  const WatchingStatefulWidget({Key? key}) : super(key: key);
+  const WatchingStatefulWidget({super.key});
 
   @override
   StatefulElement createElement() => _StatefulWatchItElement(this);

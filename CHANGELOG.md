@@ -1,3 +1,6 @@
+## 1.6.4 - 25.02.2025
+* adding `sl` alias for `di`
+* adding createOnce to the readme
 ## 1.6.3 - 22.02.2025
 * fixing an exception in Streambuilder during loading state if you don't provide an inital value
 ## 1.6.2 - 09.01.2025

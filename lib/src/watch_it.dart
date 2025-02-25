@@ -17,6 +17,11 @@ part 'widgets.dart';
 /// the functions of this library as an optional parameter
 final di = GetIt.I;
 
+/// for people taking offense that the name di is not correct because GetIt is
+/// a service locator and not a dependency injection container, we provide an
+/// alias for it.
+final sl = di;
+
 /// The Watch functions:
 ///
 /// The watch functions are the core of this library. They allow you to observe
@@ -183,7 +188,7 @@ R watchPropertyValue<T extends Listenable, R>(
 /// value of the previous stream or again [initialValue]
 /// If you want to observe a `Stream` that is not registered in get_it you can
 /// pass it as [target].
-/// if you pass null as [select], T or [target] has to be a Stream<R>.
+/// if you pass null as [select], T or [target] has to be a `Stream<R>`.
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
 ///
@@ -235,7 +240,7 @@ AsyncSnapshot<R> watchStream<T extends Object, R>(
 /// value of the previous Future or again [initialValue]
 /// If you want to observe a `Future` that is not registered in get_it you can
 /// pass it as [target].
-/// if you pass null as [select], T or [target] has to be a Future<R>.
+/// if you pass null as [select], T or [target] has to be a `Future<R>`.
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
 ///
@@ -367,7 +372,7 @@ void registerChangeNotifierHandler<T extends ChangeNotifier>({
 /// from inside the handler.
 /// If you want to register a handler to a Stream that is not registered in get_it you can
 /// pass it as [target].
-/// if you pass null as [select], T or [target] has to be a Stream<R>.
+/// if you pass null as [select], T or [target] has to be a `Stream<R>`.
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
 ///
@@ -418,7 +423,7 @@ void registerStreamHandler<T extends Object, R>({
 ///
 /// If you want to register a handler to a Future that is not registered in get_it you can
 /// pass it as [target].
-/// if you pass null as [select], T or [target] has to be a Future<R>.
+/// if you pass null as [select], T or [target] has to be a `Future<R>`.
 /// [instanceName] is the optional name of the instance if you registered it
 /// with a name in get_it.
 /// [callHandlerOnlyOnce] determines if the [handler] should be called only once

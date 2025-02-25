@@ -46,6 +46,8 @@ object you only have to type `di<MyType>()` instead of `GetIt.I<MyType>()`.
 If you prefer to use `GetIt.I` or you have your own global variable that's fine too as they all
 will use the same instance of GetIt.
 
+> Because of critisism that GetIt isn't real dependency injection, therefore `di` wouldn't be correct, you now can also use `sl` for service locator instead
+
 If you want to use a different instance of get_it you can pass it to
 the functions of this library as an optional parameter.
 
@@ -116,6 +118,30 @@ class MyWidget extends StatelessWidget with WatchItMixin {
   }
 }
 ```
+
+compare that to:
+
+```dart
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: di<AppModel>().initializationReady,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        return StreamBuilder(
+          stream: di<UserModel>().userNameUpdates,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            }
+            return Text(snapshot.data!);
+          },
+        );
+      },
+    );
+  }
+```  
 
 ### Side Effects / Event Handlers
 
@@ -370,6 +396,8 @@ class MyWidget extends StatelessWidget with WatchItMixin {
   }
 }
 ```
+Check out the GetIt docs for more information on the `isReady` and `allReady` functionality:
+https://pub.dev/packages/get_it
 
 
 # __callOnce() and onDispose()__
@@ -379,10 +407,48 @@ If you want to execute a function  only on the first built (even in in a Statele
 
 To dispose anything when the widget is disposed you can use call `onDispose` anywhere in your build function
 
+# __createOnce and createOnceAsync__
+If you need an object that is created on the first build of your stateless widget that is automatically disposed when the widget is destroyed you can use `createOnce`:
 
+```dart
+  Widget build(BuildContext context) {
+    final controller =
+        createOnce<TextEditingController>(() => TextEditingController());
+    return Row(
+      children: [
+        TextField(
+          controller: controller,
+        ),
+        ElevatedButton(
+          onPressed: () => controller.clear(),
+          child: const Text('Clear'),
+        ),
+      ],
+    );
+  }
+```
+On the first build, the controller gets created. On all following builds the same controller instance is returned. When the widget is disposed the controller gets disposed by either:
 
-Check out the GetIt docs for more information on the `isReady` and `allReady` functionality:
-https://pub.dev/packages/get_it
+* if the object contains a `dispose()` method it will be called automatically
+* if you need to call a different function to dispose the object, like `cancel()` on a StreamSubscription you can pass a custom dispose function as a second parameter to `createOnce`.
+
+If the object you need requires an async creation function you can use:
+
+```dart
+/// [createOnceAsync] creates an  object with the async factory function
+/// [factoryFunc] at the time of the first build and disposes it when the widget
+/// is disposed if the object implements the Disposable interface.
+/// [initialValue] is the value that will be returned until the factory function
+/// completes.
+/// When the [factoryFunc] completes the value will be updated with the new value
+/// and the widget will be rebuilt.
+/// [dispose] allows you to pass a custom dispose function to dispose of the
+/// object.
+/// if provided it will override the default dispose behavior.
+AsyncSnapshot<T> createOnceAsync<T>(Future<T> Function() factoryFunc,
+    {required T initialValue, void Function(T)? dispose});
+```
+
 
 # Pushing a new GetIt Scope
 
@@ -391,6 +457,7 @@ With `pushScope()` you can push a scope when a Widget/State is mounted, and auto
 void pushScope({void Function(GetIt getIt) init, void Function() dispose});
 ```
 The newly created Scope gets a unique name so that it is ensured the right Scope is dropped even if you push or drop manually other Scopes.
+
 
 # The WatchingWidgets
 Some people don't like mixins so `WatchIt` offers two Widgets that can be used instead. 
