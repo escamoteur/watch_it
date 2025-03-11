@@ -1,3 +1,6 @@
+## 1.6.5 - 11.03.2025
+* PR by @timmaffett imrproving the markdown of the readme
+* adding topics to pubspec
 ## 1.6.4 - 25.02.2025
 * adding `sl` alias for `di`
 * adding createOnce to the readme

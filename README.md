@@ -412,6 +412,8 @@ class TestStateLessWidget extends WatchingWidget {
 }
 ```
 
+> **Important**: `watchFuture` and `watchStream` expect that the selector function that is used to select the watched Stream/Future will return the same Stream/Future on every build (unless you really know what you are doing). So you should not call any async function that returns a new Future here because otherwise it can easily happen that your widget gets into an infinite rebuild cycle. 
+
 Please check the API docs for details.
 
 # __isReady<T>() and allReady()__
