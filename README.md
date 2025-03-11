@@ -2,17 +2,19 @@
 [:heart: Sponsor](https://github.com/sponsors/escamoteur) <a href="https://www.buymeacoffee.com/escamoteur" target="_blank"><img align="right" src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 # watch_it
+
 A simple state management solution powered by get_it.
 
->This package is the successor of the get_it_mixin, [here you can find what's new](#whats-different-from-the-get_it_mixin)
+> This package is the successor of the get_it_mixin, [here you can find what's new](#whats-different-from-the-get_it_mixin)
 
-> We now have a support discord server https://discord.gg/ZHYHYCM38h
+> We now have a support discord server [https://discord.gg/ZHYHYCM38h](https://discord.gg/ZHYHYCM38h)
 
-This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes. 
+This package offers a set of functions to `watch` data registered with `GetIt`. Widgets that watch data will rebuild automatically whenever that data changes.
 
 Supported data types that can be watched are `Listenable / ChangeNotifier`, `ValueListenable / ValueNotifier`, `Stream` and `Future`. On top of that there are several other powerful functions to use in `StatelessWidgets` that normally would require a `StatefulWidget`.
 
 `ChangeNotifier` based example:
+
 ```dart
  // Create a ChangeNotifier based model
  class UserModel extends ChangeNotifier {
@@ -37,7 +39,9 @@ Supported data types that can be watched are `Listenable / ChangeNotifier`, `Val
    }
  }
 ```
+
 Whenever the name property changes the `watchPropertyValue` function will trigger a rebuild and return the latest value of `name`.
+
 ## Accessing GetIt
 
 WatchIt exports the default instance of get_it as a global variable `di` (**d**ependency **i**njection) which lets
@@ -46,17 +50,17 @@ object you only have to type `di<MyType>()` instead of `GetIt.I<MyType>()`.
 If you prefer to use `GetIt.I` or you have your own global variable that's fine too as they all
 will use the same instance of GetIt.
 
-> Because of critisism that GetIt isn't real dependency injection, therefore `di` wouldn't be correct, you now can also use `sl` for service locator instead
+> Because of criticism that GetIt isn't real dependency injection, therefore `di` wouldn't be correct, you now can also use `sl` for service locator instead.
 
 If you want to use a different instance of get_it you can pass it to
 the functions of this library as an optional parameter.
-
 
 ## Watching Data
 
 Where `WatchIt` really shines is data-binding. It comes with a set of `watch` methods to rebuild a widget when data changes.
 
 Imagine you had a very simple shared model, with multiple fields, one of them being country:
+
 ```dart
 class Model {
     final country = ValueNotifier<String>('Canada');
@@ -64,7 +68,9 @@ class Model {
 }
 di.registerSingleton<Model>(Model());
 ```
+
 You could tell your view to rebuild any time country changes with a simple call to `watchValue`:
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -74,16 +80,17 @@ class MyWidget extends StatelessWidget with WatchItMixin {
   }
 }
 ```
+
 There are various `watch` methods, for common types of data sources, including `ChangeNotifier`, `ValueNotifier`, `Stream` and `Future`:
 
 | API  | Description  |
 |---|---|
-| `watch` | observes any Listenable you have access to
-| `watchIt` | observes any Listenable registered in get_it
-| `watchValue` | observes a ValueListenable property of an object registered in get_it
-| `watchPropertyValue` | observes a property of a Listenable object and trigger a rebuild whenever the Listenable notifies a change and the value of the property changes
-| `watchStream` | observes a Stream and triggers a rebuild whenever the Stream emits a new value
-| `watchFuture` | observes a Future and triggers a rebuild whenever the Future completes
+| `watch` | observes any Listenable you have access to |
+| `watchIt` | observes any Listenable registered in get_it |
+| `watchValue` | observes a ValueListenable property of an object registered in get_it |
+| `watchPropertyValue` | observes a property of a Listenable object and trigger a rebuild whenever the Listenable notifies a change and the value of the property changes |
+| `watchStream` | observes a Stream and triggers a rebuild whenever the Stream emits a new value |
+| `watchFuture` | observes a Future and triggers a rebuild whenever the Future completes |
 
 To be able to use the functions you have either to derive your widget from
 `WatchingWidget` or `WatchingStatefulWidget` or use the `WatchItMixin` or `WatchItStatefulWidgetMixin` in your widget class and call the watch functions inside the their build functions.
@@ -93,6 +100,7 @@ Just call `watch*` to listen to the data type you need, and `WatchIt` will take 
 The primary benefit to the `watch` methods is that they eliminate the need for `ValueListenableBuilders`, `StreamBuilder` etc. Each binding consumes only one line and there is no nesting. Making your code more readable and maintainable. Especially if you want to bind more than one variable.
 
 Here we watch three `ValueListenable` which would normally be three builders, 12+ lines of code and several levels of indentation. With `WatchIt`, it's three lines:
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -104,7 +112,9 @@ class MyWidget extends StatelessWidget with WatchItMixin {
   }
 }
 ```
+
 This can be used to eliminate `StreamBuilder` and `FutureBuilder` from your UI as well:
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -157,6 +167,7 @@ To run an action when data changes you can use the `register*Handler` methods:
 | `.registerChangeNotifierHandler`  | Add an event handler for a `ChangeNotifier`  |
 
 The `registerHandler`, `registerStreamHandler` and `registerFutureHandler` methods have an optional `select` delegate parameter that can be used to watch a specific field of an object in GetIt. The second parameter is the action which will be triggered when that field changes:
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -172,7 +183,6 @@ class MyWidget extends StatelessWidget with WatchItMixin {
 In the example above you see that the handler function receives the value that is returned from the select delegate (`(Model x) => x.name`), as well as a `cancel` function that the handler can call to cancel registration at any time.
 
 In case of the `registerChangeNotifierHandler` the handler function receives the `ChangeNotifier` object itself as well as a `cancel` function that the handler can call to cancel registration at any time.
-
 
 ```dart
 
@@ -211,6 +221,7 @@ As with `watch` calls, all `registerHandler` calls are cleaned up when the Widge
 # Rules
 
 There are some important rules to follow in order to avoid bugs with the `watch` or `register*` methods:
+
 * `watch` methods must be called within `build()`
   * It is good practice to define them at the top of your build method
 * must be called on every build, in the same order (no conditional watching). This is similar to `flutter_hooks`.
@@ -221,19 +232,25 @@ If you want to know more about the reasons for this rule check out [Lifting the 
 # The watch functions in detail:
 
 ## Watching `Listenable / ChangeNotifier`
-`watch` observes any `Listenable` that you pass as parameter and triggers a rebuild whenever it notifies a change. 
+
+`watch` observes any `Listenable` that you pass as parameter and triggers a rebuild whenever it notifies a change.
+
 ```dart
 T watch<T extends Listenable>(T target);
 ```
-That listenable is passed directly in as a parameter which means it could be  some local variable/property or also come from get_it. Like 
+
+That listenable is passed directly in as a parameter which means it could be  some local variable/property or also come from get_it. Like
+
 ```dart
 final userName = watch(di<UserModel>()).name;
-``` 
+```
+
 given that `UserManager` is a `Listenable` (eg. `ChangeNotifier`).
 
 If all of the following functions don't fit your needs you can probably use this one by manually providing the Listenable that should be observed.
 
 Example:
+
 ```dart
 class CounterModel with ChangeNotifier {
   int _count = 0;
@@ -255,7 +272,6 @@ Widget build(BuildContext context) {
 }
 ```
 
-
 ## Watching `Listenable` inside GetIt
 
 `watchIt` observes any Listenable registered with the type `T` in get_it and triggers a rebuild whenever it notifies a change. It's basically a shortcut for `watch(di<T>())`.
@@ -263,9 +279,11 @@ Widget build(BuildContext context) {
 with a name in get_it.
 `getIt` is the optional instance of get_it to use if you don't want to use the
 default one. 99% of the time you won't need this.
+
 ```dart
 T watchIt<T extends Listenable>({String? instanceName, GetIt? getIt}) {
 ```
+
 If we take our Listenable `UserModel` from above we could watch it like
 
 ```dart
@@ -278,21 +296,27 @@ class MyWidget extends StatelessWidget with WatchItMixin {
 }
 ```
 
-## Watching only one property of a `Listenable` 
+## Watching only one property of a `Listenable`
 
 If the `Listenable` parent object that you watch with `watchIt` notifies often because other properties have changed that you don't want to watch, the widget would rebuild without any need. In this case you can use `watchPropertyValue`
+
 ```dart
 R watchPropertyValue<T extends Listenable, R>(R Function(T) selectProperty,
     {T? target, String? instanceName, GetIt? getIt});
 ```
+
 It will only trigger a rebuild if the watched listenable notifies a change AND the value of the selected property has really changed.
+
 ```dart
 final userName = watchPropertyValue<UserManager, String>((m) => m.userName);
 ```
+
 Could be an example. Or even more expressive and concise:
+
 ```dart
 final userName = watchPropertyValue((UserManager m) => m.userName);
 ```
+
 which lets the analyzer infer the type of T and R.
 
 If you have a local Listenable and you want to observe only a single property
@@ -306,10 +330,12 @@ final userName = watchPropertyValue((m) => m.userName, target: userManger);
 ```
 
 ## Watching `ValueListenable / ValueNotifier
+
 ```dart
 R watchValue<T extends Object, R>(ValueListenable<R> Function(T) selectProperty,
     {String? instanceName, GetIt? getIt}) {
 ```
+
 `watchValue` observes a `ValueListenable` (e.g. a `ValueNotifier`) property of an object registered in get_it.
 It triggers a rebuild whenever the `ValueListenable` notifies a change and returns its current value. It's basically a shortcut for `watchIt<T>().value`
 As this is a common scenario it allows us a type safe concise way to do this.
@@ -330,6 +356,7 @@ Widget build(BuildContext context) {
   return Text(userName);
 }
 ```
+
 is an example of how to use it.
 We can use the strength of generics to infer the type of the property and write
 it even more expressive like this:
@@ -344,6 +371,7 @@ with a name in get_it.
 default one. 99% of the time you won't need this.
 
 ### Watching a local ValueListenable/ValueNotifier
+
 You might wonder why `watchValue` has no `target` parameter. The reason is that Dart doesn't support positional optional parameters in combination with named optional parameters. This would require that you always would have to add a parameter name to the select function when using it in the most common way to watch a `ValueListenable` property of an object inside GetIt.
 As there is already another option to watch local ValueListenable by using `watch` I decided to drop the `target` property from `watchValue`.
 As all `ValueListenable` are also `Listenable` we can watch them with `watch()`:
@@ -357,10 +385,13 @@ Widget build(BuildContext context) {
   return Text(counterValue);
 }
 ```
+
 This will trigger a rebuild every time the `counter.value` changes.
 
-# Watching Streams and Futures 
-`watchStream and watchFuture` follow nearly the same pattern as the above watch functions. 
+# Watching Streams and Futures
+
+`watchStream and watchFuture` follow nearly the same pattern as the above watch functions.
+
 ```dart
 class TestStateLessWidget extends WatchingWidget {
   @override
@@ -384,8 +415,10 @@ class TestStateLessWidget extends WatchingWidget {
 Please check the API docs for details.
 
 # __isReady<T>() and allReady()__
+
 A common use case is to toggle a loading state when side effects are in-progress. To check whether any async registration actions inside `GetIt` have completed you can use `allReady()` and `isReady<T>()`. These methods return the current state of any registered async operations and a rebuild is triggered when they change.
 If you only want the `onReady` handler to be called once set `callHandlerOnlyOnce==true`
+
 ```dart
 class MyWidget extends StatelessWidget with WatchItMixin {
   @override
@@ -396,18 +429,18 @@ class MyWidget extends StatelessWidget with WatchItMixin {
   }
 }
 ```
-Check out the GetIt docs for more information on the `isReady` and `allReady` functionality:
-https://pub.dev/packages/get_it
 
+Check out the GetIt docs for more information on the `isReady` and `allReady` functionality:
+[https://pub.dev/packages/get_it](https://pub.dev/packages/get_it)
 
 # __callOnce() and onDispose()__
 
 If you want to execute a function  only on the first built (even in in a StatelessWidget), you can use the `callOnce` function anywhere in your build function. It has an optional `dispose` handler which will be called when the widget is disposed.
 
-
 To dispose anything when the widget is disposed you can use call `onDispose` anywhere in your build function
 
 # __createOnce and createOnceAsync__
+
 If you need an object that is created on the first build of your stateless widget that is automatically disposed when the widget is destroyed you can use `createOnce`:
 
 ```dart
@@ -427,6 +460,7 @@ If you need an object that is created on the first build of your stateless widge
     );
   }
 ```
+
 On the first build, the controller gets created. On all following builds the same controller instance is returned. When the widget is disposed the controller gets disposed by either:
 
 * if the object contains a `dispose()` method it will be called automatically
@@ -449,22 +483,25 @@ AsyncSnapshot<T> createOnceAsync<T>(Future<T> Function() factoryFunc,
     {required T initialValue, void Function(T)? dispose});
 ```
 
-
 # Pushing a new GetIt Scope
 
 With `pushScope()` you can push a scope when a Widget/State is mounted, and automatically drop it when the Widget/State is destroyed. You can pass an optional init or dispose function.
+
 ```dart
 void pushScope({void Function(GetIt getIt) init, void Function() dispose});
 ```
+
 The newly created Scope gets a unique name so that it is ensured the right Scope is dropped even if you push or drop manually other Scopes.
 
-
 # The WatchingWidgets
-Some people don't like mixins so `WatchIt` offers two Widgets that can be used instead. 
+
+Some people don't like mixins so `WatchIt` offers two Widgets that can be used instead.
+
 * `WatchingWidget` - can be used instead of `StatelessWidget`
 * `WatchingStatefulWidget` - instead of `StatefulWidget`
 
 # Lifting the magic curtain
+
 *It's not necessary to understand the following chapter to use `WatchIt` successfully.
 You might be wondering how on earth is this possible, that you can watch multiple objects at the same time without passing some identifier to any of the `watch` functions. The reality might feel a bit like a hack but the advantages that you get from it justify it absolutely.
 When applying the `WatchItMixin` to a Widget you add a handler into the build mechanism of Flutter that makes sure that before the `build` function is called a `_watchItState` object that contains a reference to the `Element` of this widget plus a list of `WatchEntry`s is assigned to a private global variable. Over this global variable the `watch*` functions can access the `Element` to trigger a rebuild.
@@ -478,11 +515,14 @@ If you think that all sounds very familiar to you then probably because the exac
 To learn more about GetIt, watch the presentation: [GetIt in action By Thomas Burkhart](https://youtu.be/YJ52kSfSMyM), in there the predecessor of this package called ´get_it_mixin´ is described but the video should still be helpful for the GetIt part.
 
 ## What's different from the `get_it_mixin`
+
 Two main reasons lead me to replace the `get_it_mixin` package with `watch_it`
+
 * The name `get_it_mixin seemed not to catch with people and only a fraction of my get_it users used it.
 * The API naming wasn't as intuitive as I thought when I first wrote them.
 
 These are the main differences:
+
 * Widgets now can be `const`!
 * a reduced API with more intuitive naming.The old package had too many functions which were only slight variations of each other. You can easily achieve the same functionality with the functions of this package.
 * no `get/getX` functions anymore because you can just use the included global `get_it` instance `di<T>`.
